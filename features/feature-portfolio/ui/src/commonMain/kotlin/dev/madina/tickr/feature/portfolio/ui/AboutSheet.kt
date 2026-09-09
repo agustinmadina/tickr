@@ -101,9 +101,14 @@ internal fun AboutSheet(
                 onClick = { uriHandler.openUri("https://github.com/agustinmadina/tickr") },
             )
             LinkRow(
-                label = "GitHub",
-                value = "@agustinmadina",
-                onClick = { uriHandler.openUri("https://github.com/agustinmadina") },
+                label = "LinkedIn",
+                value = "in/agustin-madina",
+                onClick = { uriHandler.openUri("https://www.linkedin.com/in/agustin-madina/") },
+            )
+            LinkRow(
+                label = "Email",
+                value = "agustinmadina@gmail.com",
+                onClick = { uriHandler.openUri("mailto:agustinmadina@gmail.com") },
             )
         }
     }

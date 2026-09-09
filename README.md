@@ -235,8 +235,10 @@ implementation of everything, running where you can click it. The decisions I wo
 review are written down next to the code that makes them, including the ones where I chose the less
 impressive option on purpose.
 
+- [LinkedIn](https://www.linkedin.com/in/agustin-madina/)
 - [github.com/agustinmadina](https://github.com/agustinmadina)
-- The app itself has an **About** sheet with the same summary, reachable from the header
+- agustinmadina@gmail.com
+- The app itself has an **About** sheet with the same summary and links, reachable from the header
 
 ## Running it
 
