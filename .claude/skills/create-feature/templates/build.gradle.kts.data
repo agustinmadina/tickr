@@ -1,0 +1,35 @@
+plugins {
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+}
+
+kotlin {
+    androidLibrary {
+        namespace = "com.example.app.feature.{{FEATURE_PACKAGE}}.data"
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+        @Suppress("UnstableApiUsage")
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+
+    iosArm64()
+    iosSimulatorArm64()
+
+    jvm("desktop")
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":features:feature-{{FEATURE_NAME}}:domain"))
+            implementation(project(":core:core-data"))
+            implementation(libs.koin.core)
+            implementation(libs.kotlinx.coroutinesCore)
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
+}

@@ -1,0 +1,109 @@
+package dev.madina.tickr.feature.portfolio.ui.component
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import dev.madina.tickr.core.ui.component.AnimatedAmount
+import dev.madina.tickr.core.ui.component.LiveDot
+import dev.madina.tickr.core.ui.component.Sparkline
+import dev.madina.tickr.core.ui.format.formatPercent
+import dev.madina.tickr.core.ui.format.formatQuantity
+import dev.madina.tickr.core.ui.format.formatUsd
+import dev.madina.tickr.core.ui.theme.Negative
+import dev.madina.tickr.core.ui.theme.Positive
+import dev.madina.tickr.core.ui.theme.Radius
+import dev.madina.tickr.core.ui.theme.Sizing
+import dev.madina.tickr.core.ui.theme.Spacing
+import dev.madina.tickr.core.ui.theme.SurfaceElevated
+import dev.madina.tickr.core.ui.theme.TextSecondary
+import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
+
+@Composable
+internal fun HoldingCard(
+    holding: HoldingUi,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
+        color = SurfaceElevated,
+        shape = RoundedCornerShape(Radius.Large),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(Spacing.Large),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            LiveDot(color = holding.accent)
+
+            Spacer(Modifier.width(Spacing.Medium))
+
+            Column(modifier = Modifier.weight(SymbolWeight)) {
+                Text(
+                    text = holding.symbol,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "${holding.quantity.formatQuantity()} ${holding.symbol}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                )
+            }
+
+            Sparkline(
+                points = holding.history,
+                color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
+                modifier = Modifier
+                    .weight(SparklineWeight)
+                    .height(SparklineHeight),
+            )
+
+            Spacer(Modifier.width(Spacing.Medium))
+
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(Spacing.ExtraSmall / 2),
+            ) {
+                if (holding.value != null) {
+                    AnimatedAmount(
+                        value = holding.value,
+                        format = { it.formatUsd() },
+                        style = MaterialTheme.typography.titleMedium,
+                        baseColor = MaterialTheme.colorScheme.onSurface,
+                    )
+                } else {
+                    // A position whose price has not arrived reads as pending, not as worth zero.
+                    Text(
+                        text = "—",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextSecondary,
+                    )
+                }
+                holding.changePercent24h?.let { change ->
+                    Text(
+                        text = change.formatPercent(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (change >= 0) Positive else Negative,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private const val SymbolWeight = 1f
+private const val SparklineWeight = 0.9f
+private val SparklineHeight = Sizing.SparklineHeight / 2
