@@ -13,6 +13,15 @@ No install, no sign up. What you see in the browser is not a port or a rewrite: 
 Compose UI that runs on the phones, compiled to WebAssembly. Prices are live, streamed from
 Coinbase over a WebSocket.
 
+<p align="center">
+  <img src="docs/screenshots/live-prices.gif" width="280" alt="Live prices ticking in Tickr">
+</p>
+
+<p align="center">
+  <em>Not a mockup: those are real Coinbase quotes arriving over a WebSocket, with the totals
+  counting to each new value.</em>
+</p>
+
 ### The same screen, built from the same code
 
 <p align="center">
