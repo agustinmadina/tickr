@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Source of truth for the app icon. The Android launcher uses a hand-written vector drawable
+       with the same path, iOS needs a rendered PNG, and the web uses this file directly. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#141A22"/>
+      <stop offset="100%" stop-color="#0A0C10"/>
+    </linearGradient>
+    <!-- Fades out well before the shape ends, so the straight edges where the area is clipped are
+         already invisible by the time they are reached. -->
+    <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2ECC71" stop-opacity="0.32"/>
+      <stop offset="55%" stop-color="#2ECC71" stop-opacity="0.06"/>
+      <stop offset="80%" stop-color="#2ECC71" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- The area under the line, which is what makes the shape read as a chart at small sizes
+       rather than as an abstract zigzag. -->
+  <path d="M 200 620 L 340 660 L 470 500 L 610 560 L 824 340 L 824 1024 L 200 1024 Z"
+        fill="url(#fill)"/>
+
+  <path d="M 200 620 L 340 660 L 470 500 L 610 560 L 824 340"
+        fill="none" stroke="#2ECC71" stroke-width="64"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <circle cx="824" cy="340" r="62" fill="#2ECC71"/>
+</svg>

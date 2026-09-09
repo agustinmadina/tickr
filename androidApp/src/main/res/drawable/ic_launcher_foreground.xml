@@ -1,0 +1,30 @@
+<!--
+  Adaptive icon foreground. The artwork is scaled to about 72% of the canvas and centred, because
+  Android crops this layer to a shape chosen by the launcher (circle, squircle, rounded square) and
+  only the middle two thirds are guaranteed to survive. Drawn as a vector rather than exported as a
+  PNG so there is one file instead of five densities, and so it stays sharp on any launcher.
+
+  Source of truth for the shape: docs/icon/tickr-icon.svg
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+
+    <path
+        android:pathData="M287.4,589.8 L388.2,618.6 L481.8,503.4 L582.6,546.6 L736.6,388.2 L736.6,1024 L287.4,1024 Z"
+        android:fillColor="#2ECC71"
+        android:fillAlpha="0.18" />
+
+    <path
+        android:pathData="M287.4,589.8 L388.2,618.6 L481.8,503.4 L582.6,546.6 L736.6,388.2"
+        android:strokeColor="#2ECC71"
+        android:strokeWidth="46"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M736.6,388.2 m-45,0 a45,45 0 1,0 90,0 a45,45 0 1,0 -90,0"
+        android:fillColor="#2ECC71" />
+</vector>
