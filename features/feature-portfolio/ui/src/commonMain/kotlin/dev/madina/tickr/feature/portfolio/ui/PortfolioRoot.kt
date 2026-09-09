@@ -67,10 +67,7 @@ fun PortfolioRoot(modifier: Modifier = Modifier) {
                 }
 
                 if (state.isAddSheetVisible) {
-                    AddHoldingSheet(
-                        onDismiss = { viewModel.onAction(PortfolioAction.AddDismissed) },
-                        onConfirm = viewModel::onAction,
-                    )
+                    AddHoldingSheet(state = state, onAction = viewModel::onAction)
                 }
 
                 SnackbarHost(
@@ -95,21 +92,22 @@ private fun SinglePaneLayout(
             (
                 slideInHorizontally(tween(TransitionMillis)) { width -> offset * width } +
                     fadeIn(tween(TransitionMillis))
-                ) togetherWith (
+            ) togetherWith (
                 slideOutHorizontally(tween(TransitionMillis)) { width -> -offset * width } +
                     fadeOut(tween(TransitionMillis))
-                )
+            )
         },
         label = "portfolio-destination",
     ) { destination ->
         when (destination) {
             PortfolioDestination.Overview -> OverviewScreen(state = state, onAction = onAction)
 
-            is PortfolioDestination.Detail -> HoldingDetailScreen(
-                holding = state.selectedHolding,
-                scrubIndex = state.scrubIndex,
-                onAction = onAction,
-            )
+            is PortfolioDestination.Detail ->
+                HoldingDetailScreen(
+                    holding = state.selectedHolding,
+                    scrubIndex = state.scrubIndex,
+                    onAction = onAction,
+                )
         }
     }
 }

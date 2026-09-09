@@ -1,7 +1,9 @@
 package dev.madina.tickr.feature.portfolio.ui
 
 sealed interface PortfolioAction {
-    data class HoldingClicked(val symbol: String) : PortfolioAction
+    data class HoldingClicked(
+        val symbol: String,
+    ) : PortfolioAction
 
     data object BackClicked : PortfolioAction
 
@@ -9,17 +11,33 @@ sealed interface PortfolioAction {
 
     data object AddDismissed : PortfolioAction
 
-    data class AddConfirmed(
+    data class AssetQueryChanged(
+        val query: String,
+    ) : PortfolioAction
+
+    data class AssetSelected(
         val symbol: String,
-        val name: String,
+    ) : PortfolioAction
+
+    data object AssetSelectionCleared : PortfolioAction
+
+    /**
+     * Only the amounts: which asset is being added comes from the selection, so a symbol that the
+     * exchange does not quote cannot be typed in.
+     */
+    data class AddConfirmed(
         val quantity: String,
         val averageCost: String,
     ) : PortfolioAction
 
-    data class RemoveClicked(val symbol: String) : PortfolioAction
+    data class RemoveClicked(
+        val symbol: String,
+    ) : PortfolioAction
 
     /** Index of the chart sample being pointed at, or null when the pointer leaves. */
-    data class Scrubbed(val index: Int?) : PortfolioAction
+    data class Scrubbed(
+        val index: Int?,
+    ) : PortfolioAction
 
     data object ErrorDismissed : PortfolioAction
 }

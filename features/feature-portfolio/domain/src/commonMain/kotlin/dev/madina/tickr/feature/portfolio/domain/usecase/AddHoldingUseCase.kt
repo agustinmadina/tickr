@@ -13,7 +13,6 @@ class AddHoldingUseCase(
     private val holdingsRepository: HoldingsRepository,
     coroutineDispatcher: CoroutineDispatcher,
 ) : UseCase<AddHoldingUseCase.Params, Unit>(coroutineDispatcher) {
-
     data class Params(
         val symbol: String,
         val name: String,

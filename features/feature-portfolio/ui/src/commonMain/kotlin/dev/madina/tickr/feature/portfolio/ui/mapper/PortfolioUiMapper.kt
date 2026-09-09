@@ -15,24 +15,26 @@ import kotlinx.collections.immutable.toImmutableList
  * ViewModel's state reducer, which must stay pure.
  */
 internal fun Portfolio.toUi(previousHistory: Map<String, ImmutableList<Float>>): ImmutableList<HoldingUi> =
-    holdings.map { valued ->
-        val symbol = valued.holding.symbol
-        HoldingUi(
-            symbol = symbol,
-            name = valued.holding.name,
-            quantity = valued.holding.quantity,
-            price = valued.price?.price,
-            value = valued.value,
-            profit = valued.profit,
-            returnPercent = valued.returnPercent,
-            changePercent24h = valued.price?.changePercent24h,
-            accent = assetColor(symbol),
-            history = appendSample(
-                history = previousHistory[symbol] ?: persistentListOf(),
+    holdings
+        .map { valued ->
+            val symbol = valued.holding.symbol
+            HoldingUi(
+                symbol = symbol,
+                name = valued.holding.name,
+                quantity = valued.holding.quantity,
                 price = valued.price?.price,
-            ),
-        )
-    }.toImmutableList()
+                value = valued.value,
+                profit = valued.profit,
+                returnPercent = valued.returnPercent,
+                changePercent24h = valued.price?.changePercent24h,
+                accent = assetColor(symbol),
+                history =
+                    appendSample(
+                        history = previousHistory[symbol] ?: persistentListOf(),
+                        price = valued.price?.price,
+                    ),
+            )
+        }.toImmutableList()
 
 /**
  * Appends a sample, ignoring a repeat of the last value.

@@ -1,5 +1,6 @@
 package dev.madina.tickr.feature.portfolio.ui
 
+import dev.madina.tickr.feature.portfolio.ui.model.AssetUi
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -11,7 +12,9 @@ import kotlinx.collections.immutable.persistentListOf
 sealed interface PortfolioDestination {
     data object Overview : PortfolioDestination
 
-    data class Detail(val symbol: String) : PortfolioDestination
+    data class Detail(
+        val symbol: String,
+    ) : PortfolioDestination
 }
 
 data class PortfolioUiState(
@@ -33,6 +36,15 @@ data class PortfolioUiState(
     val isPartiallyPriced: Boolean = false,
     val destination: PortfolioDestination = PortfolioDestination.Overview,
     val isAddSheetVisible: Boolean = false,
+    /**
+     * Picker state. The query lives here rather than in the sheet because it drives which results
+     * are shown, and the results come from a use case rather than from the composition.
+     */
+    val assetQuery: String = "",
+    val assetResults: ImmutableList<AssetUi> = persistentListOf(),
+    val selectedAsset: AssetUi? = null,
+    val isCatalogLoading: Boolean = false,
+    val catalogError: String? = null,
     val errorMessage: String? = null,
 ) {
     val isEmpty: Boolean = !isLoading && holdings.isEmpty()
@@ -56,6 +68,7 @@ data class PortfolioUiState(
         }
 
     val selectedHolding: HoldingUi?
-        get() = (destination as? PortfolioDestination.Detail)
-            ?.let { detail -> holdings.firstOrNull { it.symbol == detail.symbol } }
+        get() =
+            (destination as? PortfolioDestination.Detail)
+                ?.let { detail -> holdings.firstOrNull { it.symbol == detail.symbol } }
 }

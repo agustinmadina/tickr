@@ -10,6 +10,7 @@ import org.koin.dsl.module
  * why the wiring is split: `di/` aggregates modules rather than naming implementation types, which
  * lets every layer keep its internals internal.
  */
-val portfolioUiModule: Module = module {
-    viewModel { PortfolioViewModel(get(), get(), get()) }
-}
+val portfolioUiModule: Module =
+    module {
+        viewModel { PortfolioViewModel(get(), get(), get(), get()) }
+    }

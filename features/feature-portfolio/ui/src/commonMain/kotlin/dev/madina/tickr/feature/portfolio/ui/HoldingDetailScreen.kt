@@ -55,12 +55,13 @@ internal fun HoldingDetailScreen(
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .widthIn(max = Sizing.ContentMaxWidth)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.Large)
-                .padding(WindowInsets.safeDrawing.asPaddingValues()),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .widthIn(max = Sizing.ContentMaxWidth)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = Spacing.Large)
+                    .padding(WindowInsets.safeDrawing.asPaddingValues()),
         ) {
             if (showBack) {
                 TextButton(onClick = { onAction(PortfolioAction.BackClicked) }) {

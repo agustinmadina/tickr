@@ -8,8 +8,9 @@ class RemoveHoldingUseCase(
     private val holdingsRepository: HoldingsRepository,
     coroutineDispatcher: CoroutineDispatcher,
 ) : UseCase<RemoveHoldingUseCase.Params, Unit>(coroutineDispatcher) {
-
-    data class Params(val symbol: String)
+    data class Params(
+        val symbol: String,
+    )
 
     override suspend fun execute(parameters: Params) {
         holdingsRepository.removeHolding(parameters.symbol.trim().uppercase())

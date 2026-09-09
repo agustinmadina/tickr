@@ -78,9 +78,10 @@ internal fun HoldingCard(
             Sparkline(
                 points = holding.history,
                 color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
-                modifier = Modifier
-                    .weight(SparklineWeight)
-                    .height(SparklineHeight),
+                modifier =
+                    Modifier
+                        .weight(SparklineWeight)
+                        .height(SparklineHeight),
             )
 
             Spacer(Modifier.width(Spacing.Medium))

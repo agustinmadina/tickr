@@ -30,20 +30,21 @@ class ObservePortfolioUseCase(
     private val priceRepository: PriceRepository,
     coroutineDispatcher: CoroutineDispatcher,
 ) : FlowUseCase<Unit, Portfolio>(coroutineDispatcher) {
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun execute(parameters: Unit): Flow<Portfolio> {
         val holdings = holdingsRepository.observeHoldings()
-        val prices = holdings
-            .map { current -> current.map { it.symbol }.toSet() }
-            .distinctUntilChanged()
-            .flatMapLatest(priceRepository::observePrices)
+        val prices =
+            holdings
+                .map { current -> current.map { it.symbol }.toSet() }
+                .distinctUntilChanged()
+                .flatMapLatest(priceRepository::observePrices)
 
         return combine(holdings, prices) { currentHoldings, currentPrices ->
             Portfolio(
-                holdings = currentHoldings.map { holding ->
-                    ValuedHolding(holding = holding, price = currentPrices[holding.symbol])
-                },
+                holdings =
+                    currentHoldings.map { holding ->
+                        ValuedHolding(holding = holding, price = currentPrices[holding.symbol])
+                    },
             )
         }
     }

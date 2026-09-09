@@ -30,19 +30,21 @@ internal fun PortfolioSkeleton(modifier: Modifier = Modifier) {
     val alpha by transition.animateFloat(
         initialValue = MinAlpha,
         targetValue = MaxAlpha,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = BreathDurationMillis),
-            repeatMode = RepeatMode.Reverse,
-        ),
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = BreathDurationMillis),
+                repeatMode = RepeatMode.Reverse,
+            ),
         label = "skeleton-alpha",
     )
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(RowHeight)
-            .clip(RoundedCornerShape(Radius.Large))
-            .background(SurfaceElevated.copy(alpha = alpha)),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(RowHeight)
+                .clip(RoundedCornerShape(Radius.Large))
+                .background(SurfaceElevated.copy(alpha = alpha)),
     )
 }
 

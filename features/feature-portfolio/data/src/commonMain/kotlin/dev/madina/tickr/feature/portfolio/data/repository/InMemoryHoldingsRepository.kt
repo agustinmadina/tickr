@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.update
  * replaces this class and nothing else, which is the point of the interface living in `domain`.
  */
 internal class InMemoryHoldingsRepository : HoldingsRepository {
-
     private val holdings = MutableStateFlow(SampleHoldings)
 
     override fun observeHoldings(): Flow<List<Holding>> = holdings.asStateFlow()
@@ -33,9 +32,10 @@ internal class InMemoryHoldingsRepository : HoldingsRepository {
     }
 }
 
-private val SampleHoldings = listOf(
-    Holding(symbol = "BTC", name = "Bitcoin", quantity = 0.241, averageCost = 62_100.0),
-    Holding(symbol = "ETH", name = "Ethereum", quantity = 1.80, averageCost = 2_010.0),
-    Holding(symbol = "SOL", name = "Solana", quantity = 12.4, averageCost = 88.20),
-    Holding(symbol = "XRP", name = "XRP", quantity = 940.0, averageCost = 1.74),
-)
+private val SampleHoldings =
+    listOf(
+        Holding(symbol = "BTC", name = "Bitcoin", quantity = 0.241, averageCost = 62_100.0),
+        Holding(symbol = "ETH", name = "Ethereum", quantity = 1.80, averageCost = 2_010.0),
+        Holding(symbol = "SOL", name = "Solana", quantity = 12.4, averageCost = 88.20),
+        Holding(symbol = "XRP", name = "XRP", quantity = 940.0, averageCost = 1.74),
+    )

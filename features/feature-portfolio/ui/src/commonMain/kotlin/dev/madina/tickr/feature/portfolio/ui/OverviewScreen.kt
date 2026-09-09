@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,14 +60,15 @@ internal fun OverviewScreen(
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().widthIn(max = Sizing.ContentMaxWidth),
-            contentPadding = PaddingValues(
-                start = Spacing.Large,
-                end = Spacing.Large,
-                // Status bar and notch folded into the padding rather than added as a leading
-                // spacer item, which stacked on top of it and pushed the header down the screen.
-                top = Spacing.Large + WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding(),
-                bottom = Spacing.Huge + WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding(),
-            ),
+            contentPadding =
+                PaddingValues(
+                    start = Spacing.Large,
+                    end = Spacing.Large,
+                    // Status bar and notch folded into the padding rather than added as a leading
+                    // spacer item, which stacked on top of it and pushed the header down the screen.
+                    top = Spacing.Large + WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding(),
+                    bottom = Spacing.Huge + WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding(),
+                ),
             verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
         ) {
             item { PortfolioHeader(state) }
@@ -80,9 +80,10 @@ internal fun OverviewScreen(
                         color = if (state.totalProfit >= 0) Positive else Negative,
                         scrubIndex = state.scrubIndex,
                         onScrub = { index -> onAction(PortfolioAction.Scrubbed(index)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(Sizing.HeaderChartHeight),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(Sizing.HeaderChartHeight),
                     )
                 }
             }
@@ -90,9 +91,10 @@ internal fun OverviewScreen(
             if (state.holdings.isNotEmpty()) {
                 item {
                     AllocationBar(
-                        segments = state.holdings
-                            .map { AllocationSegment(key = it.symbol, weight = it.value ?: 0.0, color = it.accent) }
-                            .toImmutableList(),
+                        segments =
+                            state.holdings
+                                .map { AllocationSegment(key = it.symbol, weight = it.value ?: 0.0, color = it.accent) }
+                                .toImmutableList(),
                     )
                 }
             }
@@ -253,5 +255,6 @@ private fun EmptyState() {
 }
 
 private const val SkeletonRowCount = 4
+
 /** Below this the chart is a line between two dots, which reads as broken rather than as early. */
 private const val MinimumChartPoints = 4
