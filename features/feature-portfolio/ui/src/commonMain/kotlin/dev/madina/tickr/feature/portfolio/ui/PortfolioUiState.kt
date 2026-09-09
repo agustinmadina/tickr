@@ -39,6 +39,7 @@ data class PortfolioUiState(
     val isPartiallyPriced: Boolean = false,
     val destination: PortfolioDestination = PortfolioDestination.Overview,
     val isAddSheetVisible: Boolean = false,
+    val isAboutVisible: Boolean = false,
     /**
      * Picker state. The query lives here rather than in the sheet because it drives which results
      * are shown, and the results come from a use case rather than from the composition.

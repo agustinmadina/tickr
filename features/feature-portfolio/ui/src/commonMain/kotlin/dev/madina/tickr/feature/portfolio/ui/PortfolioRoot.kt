@@ -70,6 +70,10 @@ fun PortfolioRoot(modifier: Modifier = Modifier) {
                     AddHoldingSheet(state = state, onAction = viewModel::onAction)
                 }
 
+                if (state.isAboutVisible) {
+                    AboutSheet(onDismiss = { viewModel.onAction(PortfolioAction.AboutDismissed) })
+                }
+
                 SnackbarHost(
                     hostState = snackbarHostState,
                     modifier = Modifier.align(Alignment.BottomCenter),

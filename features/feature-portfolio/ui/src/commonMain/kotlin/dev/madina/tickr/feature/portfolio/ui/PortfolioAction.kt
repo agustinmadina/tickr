@@ -11,6 +11,10 @@ sealed interface PortfolioAction {
 
     data object AddDismissed : PortfolioAction
 
+    data object AboutClicked : PortfolioAction
+
+    data object AboutDismissed : PortfolioAction
+
     data class AssetQueryChanged(
         val query: String,
     ) : PortfolioAction

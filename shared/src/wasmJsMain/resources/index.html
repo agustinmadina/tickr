@@ -3,31 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#0B0D10">
-    <meta name="description" content="Tickr — a Kotlin Multiplatform crypto portfolio with live prices, running from the same code on Android, iOS and the web.">
-    <title>Tickr</title>
+    <meta name="theme-color" content="#0A0C10">
+
+    <title>Tickr — Kotlin Multiplatform demo by Agustin Madina</title>
+    <meta name="author" content="Agustin Madina">
+    <meta name="description" content="One Kotlin codebase running on Android, iOS and the web, UI included. Live crypto prices over a WebSocket, built with Compose Multiplatform and WebAssembly by Agustin Madina, Android and KMP engineer.">
+
+    <!-- Open Graph, so pasting this link into LinkedIn, Slack or WhatsApp shows a card with a name
+         on it rather than a bare URL. The image must be an absolute URL: relative paths are not
+         resolved by the crawlers. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Agustin Madina">
+    <meta property="og:title" content="Tickr — one Kotlin codebase on Android, iOS and the web">
+    <meta property="og:description" content="The same Compose UI on three platforms, with live prices over a WebSocket. Built by Agustin Madina, Android and Kotlin Multiplatform engineer.">
+    <meta property="og:url" content="https://agustinmadina.github.io/tickr/">
+    <meta property="og:image" content="https://agustinmadina.github.io/tickr/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tickr — one Kotlin codebase on Android, iOS and the web">
+    <meta name="twitter:description" content="The same Compose UI on three platforms, with live prices over a WebSocket. Built by Agustin Madina.">
+    <meta name="twitter:image" content="https://agustinmadina.github.io/tickr/og-image.png">
+
     <style>
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
-            background: #0B0D10;
+            background: #0A0C10;
             overscroll-behavior: none;
         }
         #loader {
             position: fixed;
             inset: 0;
             display: flex;
+            flex-direction: column;
+            gap: 10px;
             align-items: center;
             justify-content: center;
-            color: #8A94A6;
+            color: #8B95A7;
             font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             letter-spacing: 1.5px;
+        }
+        /* The wasm bundle is a few megabytes, so the first paint is not instant. Saying what is
+           happening, and whose work it is, beats a blank screen for those seconds. */
+        #loader small {
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            color: #5C6577;
         }
     </style>
 </head>
 <body>
-<div id="loader">LOADING</div>
+<div id="loader">
+    LOADING
+    <small>Kotlin Multiplatform demo by Agustin Madina</small>
+</div>
 <script type="application/javascript" src="tickr.js"></script>
 </body>
 </html>

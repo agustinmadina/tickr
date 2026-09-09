@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -71,6 +73,8 @@ internal fun OverviewScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
         ) {
+            item { Byline(onClick = { onAction(PortfolioAction.AboutClicked) }) }
+
             item { PortfolioHeader(state) }
 
             if (state.totalHistory.size >= MinimumChartPoints) {
@@ -163,6 +167,32 @@ private fun AddAssetRow(onClick: () -> Unit, modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.primary,
             )
         }
+    }
+}
+
+/**
+ * Signature and the way into [AboutSheet], in one line.
+ *
+ * A demo is read by someone deciding whose work it is, and a portfolio piece with no name on it
+ * makes them go looking. Putting it in the layout rather than over the content keeps it out of the
+ * way of the app itself, and tapping it explains the project rather than just crediting it.
+ */
+@Composable
+private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+    ) {
+        Text(
+            text = "by Agustin Madina",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextSecondary,
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(Radius.Small))
+                    .clickable(onClick = onClick)
+                    .padding(horizontal = Spacing.Small, vertical = Spacing.ExtraSmall),
+        )
     }
 }
 

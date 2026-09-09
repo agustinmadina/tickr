@@ -62,7 +62,10 @@ internal fun HoldingCard(
 
             Spacer(Modifier.width(Spacing.Medium))
 
-            Column(modifier = Modifier.weight(SymbolWeight)) {
+            // No weight on the label column: a weight reserves its share of the row whatever the
+            // text measures, and with symbols this short that left a gap between the name and the
+            // start of the line. The chart takes the leftover space instead.
+            Column {
                 Text(
                     text = holding.symbol,
                     style = MaterialTheme.typography.titleMedium,
@@ -80,7 +83,8 @@ internal fun HoldingCard(
                 color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
                 modifier =
                     Modifier
-                        .weight(SparklineWeight)
+                        .weight(1f)
+                        .padding(horizontal = Spacing.Medium)
                         .height(SparklineHeight),
             )
 
@@ -129,6 +133,4 @@ internal fun HoldingCard(
 }
 
 private val SelectionBorderWidth = 1.dp
-private const val SymbolWeight = 1f
-private const val SparklineWeight = 0.9f
 private val SparklineHeight = Sizing.SparklineHeight / 2

@@ -107,6 +107,10 @@ internal class PortfolioViewModel(
 
             PortfolioAction.AssetSelectionCleared -> updateState { it.copy(selectedAsset = null) }
 
+            PortfolioAction.AboutClicked -> updateState { it.copy(isAboutVisible = true) }
+
+            PortfolioAction.AboutDismissed -> updateState { it.copy(isAboutVisible = false) }
+
             is PortfolioAction.AddConfirmed -> confirmAdd(action)
 
             is PortfolioAction.RemoveClicked -> remove(action.symbol)
