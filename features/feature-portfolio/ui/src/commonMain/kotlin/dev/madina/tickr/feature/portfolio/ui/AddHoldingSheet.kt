@@ -152,6 +152,16 @@ internal fun AddHoldingSheet(
                     onChange = { onAction(PortfolioAction.AssetSelectionCleared) },
                 )
 
+                // The obvious question when every other number is fetched live is why this one is
+                // typed. Answering it here is cheaper than leaving the user to wonder.
+                Text(
+                    text =
+                        "The price comes from Coinbase. What you paid is the one thing it " +
+                            "cannot know, and it is what turns this into a profit and not just a price.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                )
+
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)) {
                     OutlinedTextField(
                         value = quantity,
@@ -165,7 +175,8 @@ internal fun AddHoldingSheet(
                     OutlinedTextField(
                         value = averageCost,
                         onValueChange = { averageCost = it },
-                        label = { Text("Average cost") },
+                        label = { Text("Paid per unit") },
+                        placeholder = { Text("USD") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),

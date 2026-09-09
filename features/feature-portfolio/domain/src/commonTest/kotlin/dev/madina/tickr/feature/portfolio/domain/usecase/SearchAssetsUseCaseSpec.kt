@@ -4,6 +4,7 @@ import dev.madina.tickr.feature.portfolio.domain.model.Asset
 import dev.madina.tickr.feature.portfolio.domain.repository.AssetCatalogRepository
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -80,6 +81,49 @@ internal class SearchAssetsUseCaseSpec :
                         val results = useCase(SearchAssetsUseCase.Params(query = "", limit = 2)).getOrThrow()
 
                         results.size shouldBe 2
+                    }
+                }
+            }
+        }
+
+        Given("an asset already in the portfolio") {
+            When("the catalogue is searched") {
+                Then("it is not offered, so it cannot be added twice") {
+                    runTest {
+                        val useCase = useCase(testScheduler)
+
+                        val results =
+                            useCase(
+                                SearchAssetsUseCase.Params(query = "btc", excludedSymbols = setOf("BTC")),
+                            ).getOrThrow()
+
+                        results.map { it.symbol } shouldNotContain "BTC"
+                    }
+                }
+
+                Then("other matches are still offered") {
+                    runTest {
+                        val useCase = useCase(testScheduler)
+
+                        val results =
+                            useCase(
+                                SearchAssetsUseCase.Params(query = "btc", excludedSymbols = setOf("BTC")),
+                            ).getOrThrow()
+
+                        results.map { it.symbol } shouldContain "WBTC"
+                    }
+                }
+
+                Then("the exclusion is case insensitive, since a symbol can be typed either way") {
+                    runTest {
+                        val useCase = useCase(testScheduler)
+
+                        val results =
+                            useCase(
+                                SearchAssetsUseCase.Params(query = "", excludedSymbols = setOf("btc")),
+                            ).getOrThrow()
+
+                        results.map { it.symbol } shouldNotContain "BTC"
                     }
                 }
             }

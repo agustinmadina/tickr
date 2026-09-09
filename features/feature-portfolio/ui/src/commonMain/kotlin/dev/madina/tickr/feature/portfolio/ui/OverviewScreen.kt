@@ -75,16 +75,29 @@ internal fun OverviewScreen(
 
             if (state.totalHistory.size >= MinimumChartPoints) {
                 item {
-                    InteractiveLineChart(
-                        points = state.totalHistory,
-                        color = if (state.totalProfit >= 0) Positive else Negative,
-                        scrubIndex = state.scrubIndex,
-                        onScrub = { index -> onAction(PortfolioAction.Scrubbed(index)) },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(Sizing.HeaderChartHeight),
-                    )
+                    Column {
+                        InteractiveLineChart(
+                            points = state.totalHistory,
+                            // Coloured by its own movement, not by the all time return. Painting a
+                            // falling session green because the position is up over its lifetime
+                            // makes the chart contradict the line it draws.
+                            color = if (state.sessionChange >= 0) Positive else Negative,
+                            scrubIndex = state.scrubIndex,
+                            onScrub = { index -> onAction(PortfolioAction.Scrubbed(index)) },
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(Sizing.HeaderChartHeight),
+                        )
+                        Spacer(Modifier.height(Spacing.ExtraSmall))
+                        // The third window on this screen, after all time above and 24h below.
+                        // Unlabelled, a rising chart over four falling rows reads as a bug.
+                        Text(
+                            text = "since you opened the app",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                        )
+                    }
                 }
             }
 
@@ -211,6 +224,9 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 color = if (scrubbedChange >= 0) Positive else Negative,
             )
         } else {
+            // Labelled "all time" because the rows underneath show the 24 hour move. Unlabelled,
+            // a +21% here next to four red rows reads as a bug rather than as two different
+            // measures: this one is against what you paid, those are against yesterday.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AnimatedAmount(
                     value = state.totalProfit,
@@ -227,6 +243,12 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                         color = if (percent >= 0) Positive else Negative,
                     )
                 }
+                Spacer(Modifier.width(Spacing.Small))
+                Text(
+                    text = "all time",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                )
             }
         }
     }

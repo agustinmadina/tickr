@@ -159,7 +159,7 @@ internal fun HoldingDetailScreen(
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                     DetailRow(
-                        label = "Return",
+                        label = "Return since you bought",
                         value = holding.returnPercent?.formatPercent() ?: Pending,
                         valueColor = holding.returnPercent?.let { if (it >= 0) Positive else Negative },
                     )

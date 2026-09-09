@@ -107,11 +107,21 @@ internal fun HoldingCard(
                     )
                 }
                 holding.changePercent24h?.let { change ->
-                    Text(
-                        text = change.formatPercent(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (change >= 0) Positive else Negative,
-                    )
+                    // Suffixed, because the headline above reports all time return and an
+                    // unlabelled percentage here invites the reader to compare the two.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = change.formatPercent(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (change >= 0) Positive else Negative,
+                        )
+                        Spacer(Modifier.width(Spacing.ExtraSmall))
+                        Text(
+                            text = "24h",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                        )
+                    }
                 }
             }
         }

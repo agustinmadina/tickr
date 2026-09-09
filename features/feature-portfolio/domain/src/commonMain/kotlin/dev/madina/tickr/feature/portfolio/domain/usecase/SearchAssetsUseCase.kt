@@ -6,7 +6,7 @@ import dev.madina.tickr.feature.portfolio.domain.repository.AssetCatalogReposito
 import kotlinx.coroutines.CoroutineDispatcher
 
 /**
- * Finds assets to add, from the set the exchange actually quotes.
+ * Finds assets to add, from the set the exchange actually quotes and the user does not already own.
  *
  * Ranking is the point of doing this in the domain rather than filtering in the UI. A plain
  * `contains` puts "Wrapped Bitcoin" alongside "Bitcoin" for the query "bit", and buries an exact
@@ -19,11 +19,20 @@ class SearchAssetsUseCase(
 ) : UseCase<SearchAssetsUseCase.Params, List<Asset>>(coroutineDispatcher) {
     data class Params(
         val query: String,
+        /**
+         * Symbols already in the portfolio, excluded from the results.
+         *
+         * Offering one would invite a duplicate, and adding a held symbol silently replaces the
+         * existing position with a new quantity and cost, which is not what picking it from a list
+         * of things to add looks like it should do.
+         */
+        val excludedSymbols: Set<String> = emptySet(),
         val limit: Int = DefaultLimit,
     )
 
     override suspend fun execute(parameters: Params): List<Asset> {
-        val catalog = assetCatalogRepository.tradableAssets()
+        val excluded = parameters.excludedSymbols.map { it.uppercase() }.toSet()
+        val catalog = assetCatalogRepository.tradableAssets().filterNot { it.symbol.uppercase() in excluded }
         val query = parameters.query.trim().lowercase()
 
         if (query.isEmpty()) {

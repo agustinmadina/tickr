@@ -51,6 +51,19 @@ data class PortfolioUiState(
 
     val isScrubbing: Boolean = scrubIndex != null
 
+    /**
+     * How the total has moved since the app opened, which is the window the header chart covers.
+     *
+     * It is a third measure alongside all time return and the rows' 24 hour change, and the only
+     * one bounded by the session, since the app keeps no history between launches.
+     */
+    val sessionChange: Double =
+        if (totalHistory.size < 2) {
+            0.0
+        } else {
+            (totalHistory.last() - totalHistory.first()).toDouble()
+        }
+
     /** What the headline shows: the scrubbed point when pointing, the live total otherwise. */
     val displayedValue: Double =
         scrubIndex?.let { totalHistory.getOrNull(it)?.toDouble() } ?: totalValue

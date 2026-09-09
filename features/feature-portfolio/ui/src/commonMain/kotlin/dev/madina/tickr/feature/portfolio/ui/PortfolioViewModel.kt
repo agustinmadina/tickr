@@ -143,25 +143,29 @@ internal class PortfolioViewModel(
 
                 updateState { it.copy(isCatalogLoading = true, catalogError = null) }
 
-                searchAssets(SearchAssetsUseCase.Params(query = query))
-                    .onSuccess { assets ->
-                        updateState { state ->
-                            state.copy(
-                                isCatalogLoading = false,
-                                assetResults =
-                                    assets
-                                        .map { AssetUi(it.symbol, it.name, assetColor(it.symbol)) }
-                                        .toImmutableList(),
-                            )
-                        }
-                    }.onFailure { throwable ->
-                        updateState {
-                            it.copy(
-                                isCatalogLoading = false,
-                                catalogError = "Could not load the asset list. Check your connection.",
-                            )
-                        }
+                searchAssets(
+                    SearchAssetsUseCase.Params(
+                        query = query,
+                        excludedSymbols = currentState.holdings.map { it.symbol }.toSet(),
+                    ),
+                ).onSuccess { assets ->
+                    updateState { state ->
+                        state.copy(
+                            isCatalogLoading = false,
+                            assetResults =
+                                assets
+                                    .map { AssetUi(it.symbol, it.name, assetColor(it.symbol)) }
+                                    .toImmutableList(),
+                        )
                     }
+                }.onFailure { throwable ->
+                    updateState {
+                        it.copy(
+                            isCatalogLoading = false,
+                            catalogError = "Could not load the asset list. Check your connection.",
+                        )
+                    }
+                }
             }
     }
 
