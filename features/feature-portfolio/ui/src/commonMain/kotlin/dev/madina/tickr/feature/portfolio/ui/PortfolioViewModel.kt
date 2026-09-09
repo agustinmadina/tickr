@@ -6,6 +6,8 @@ import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase
 import dev.madina.tickr.feature.portfolio.ui.mapper.toUi
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -28,6 +30,7 @@ internal class PortfolioViewModel(
                         totalValue = portfolio.totalValue,
                         totalProfit = portfolio.totalProfit,
                         totalReturnPercent = portfolio.totalReturnPercent,
+                        totalHistory = previous.totalHistory.append(portfolio.totalValue),
                         isPartiallyPriced = portfolio.isPartiallyPriced,
                         isLoading = false,
                     )
@@ -58,6 +61,15 @@ internal class PortfolioViewModel(
             is PortfolioAction.AddConfirmed -> confirmAdd(action)
 
             is PortfolioAction.RemoveClicked -> remove(action.symbol)
+
+            is PortfolioAction.Scrubbed -> updateState { state ->
+                // coerceIn over an empty range throws, and the history is empty until the first
+                // quote lands, which is exactly when a stray pointer event can arrive.
+                val index = action.index
+                    ?.takeIf { state.totalHistory.isNotEmpty() }
+                    ?.coerceIn(0, state.totalHistory.lastIndex)
+                state.copy(scrubIndex = index)
+            }
 
             PortfolioAction.ErrorDismissed ->
                 updateState { it.copy(errorMessage = null) }
@@ -102,3 +114,19 @@ internal class PortfolioViewModel(
 
 private fun Throwable.readableMessage(): String =
     message?.takeIf { it.isNotBlank() } ?: "Something went wrong"
+
+/**
+ * Appends a sample to the total's history, dropping a repeat of the last value.
+ *
+ * Skipping the repeat is what makes this safe inside the reducer, which `MutableStateFlow.update`
+ * may re-run under contention, and it also keeps a still market from filling the chart with a
+ * straight line of identical points.
+ */
+private fun ImmutableList<Float>.append(value: Double): ImmutableList<Float> {
+    val sample = value.toFloat()
+    if (lastOrNull() == sample) return this
+    return (this + sample).takeLast(MaxTotalSamples).toImmutableList()
+}
+
+/** Roughly a few minutes of feed at the current tick rate, which is all the chart can resolve. */
+private const val MaxTotalSamples = 120

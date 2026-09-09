@@ -27,6 +27,7 @@ object Sizing {
     val AllocationBarHeight = 10.dp
     val AssetDotSize = 10.dp
     val AssetBadgeSize = 40.dp
+    val HeaderChartHeight = 120.dp
     val SparklineHeight = 64.dp
     val DetailChartHeight = 180.dp
 }

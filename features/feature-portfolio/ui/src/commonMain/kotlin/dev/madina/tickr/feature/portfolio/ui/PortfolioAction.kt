@@ -18,5 +18,8 @@ sealed interface PortfolioAction {
 
     data class RemoveClicked(val symbol: String) : PortfolioAction
 
+    /** Index of the chart sample being pointed at, or null when the pointer leaves. */
+    data class Scrubbed(val index: Int?) : PortfolioAction
+
     data object ErrorDismissed : PortfolioAction
 }
