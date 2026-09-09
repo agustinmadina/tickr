@@ -1,6 +1,7 @@
 package dev.madina.tickr.feature.portfolio.domain.usecase
 
 import dev.madina.tickr.feature.portfolio.domain.model.Holding
+import dev.madina.tickr.feature.portfolio.domain.model.Portfolio
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
 import dev.madina.tickr.feature.portfolio.domain.repository.HoldingsRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
@@ -11,7 +12,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 
@@ -82,17 +84,22 @@ internal class ObservePortfolioUseCaseSpec :
                             )
                         val useCase = ObservePortfolioUseCase(holdings, prices, UnconfinedTestDispatcher(testScheduler))
 
-                        // Collect until the portfolio reflects both holdings, which can only happen if
-                        // the symbol set was recomputed and the feed resubscribed.
-                        val sizes = mutableListOf<Int>()
-                        val portfolio =
-                            useCase(Unit)
-                                .map { it.also { current -> sizes += current.holdings.size } }
-                                .also { holdings.add(Eth) }
-                                .first { it.holdings.size == 2 }
+                        // Subscribed first, mutated second. Adding the holding inside the chain
+                        // being built ran before anything collected, so the feed was asked once
+                        // for the final set and this passed with flatMapLatest deleted from the
+                        // use case, which is the opposite of what it claims to check.
+                        val seen = mutableListOf<Portfolio>()
+                        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                            useCase(Unit).toList(seen)
+                        }
 
-                        portfolio.totalValue shouldBe 400.0 + 150.0
-                        prices.requestedSymbols.last() shouldBe setOf("BTC", "ETH")
+                        prices.requestedSymbols shouldContainExactly listOf(setOf("BTC"))
+
+                        holdings.add(Eth)
+
+                        prices.requestedSymbols shouldContainExactly
+                            listOf(setOf("BTC"), setOf("BTC", "ETH"))
+                        seen.last().totalValue shouldBe 400.0 + 150.0
                     }
                 }
             }

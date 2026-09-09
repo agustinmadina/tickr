@@ -20,6 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -33,14 +35,11 @@ import kotlinx.coroutines.test.setMain
 internal class PortfolioViewModelSpec :
     BehaviorSpec({
 
-        beforeSpec { Dispatchers.setMain(UnconfinedTestDispatcher()) }
-        afterSpec { Dispatchers.resetMain() }
-
         Given("a portfolio that has been priced") {
 
             When("the feed emits") {
                 Then("loading ends and the totals reach the state") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
 
                         val state = viewModel.state.first { !it.isLoading }
@@ -51,7 +50,7 @@ internal class PortfolioViewModelSpec :
                 }
 
                 Then("the total's history collects a sample once everything is priced") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
 
                         val state = viewModel.state.first { it.totalHistory.isNotEmpty() }
@@ -63,7 +62,7 @@ internal class PortfolioViewModelSpec :
 
             When("the user points at a sample on the chart") {
                 Then("the headline reads that point instead of the live total") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
 
@@ -76,7 +75,7 @@ internal class PortfolioViewModelSpec :
                 }
 
                 Then("releasing returns the headline to the live total") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, 0))
@@ -88,7 +87,7 @@ internal class PortfolioViewModelSpec :
                 }
 
                 Then("an index past the end is clamped rather than crashing") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
 
@@ -101,7 +100,7 @@ internal class PortfolioViewModelSpec :
 
             When("the user opens an asset while pointing at the overview chart") {
                 Then("the overview marker stays, since that chart never left the screen") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, 0))
@@ -116,7 +115,7 @@ internal class PortfolioViewModelSpec :
                 }
 
                 Then("the detail's own marker is cleared, since it pointed into another series") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.holdings.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
@@ -134,7 +133,7 @@ internal class PortfolioViewModelSpec :
         Given("the detail screen open on an asset") {
             When("the user points at its chart") {
                 Then("the selected holding has a series to read a price from") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.holdings.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
@@ -148,7 +147,7 @@ internal class PortfolioViewModelSpec :
                 }
 
                 Then("only the detail's marker moves, not the overview's") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
@@ -164,7 +163,7 @@ internal class PortfolioViewModelSpec :
                 }
 
                 Then("pointing at the overview does not mark the detail either") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
@@ -181,7 +180,7 @@ internal class PortfolioViewModelSpec :
         Given("a chart built up over a session") {
             When("an asset is added, changing what the total covers") {
                 Then("the series restarts, since a bigger portfolio is not a market move") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
 
@@ -205,7 +204,7 @@ internal class PortfolioViewModelSpec :
         Given("an asset already held") {
             When("the add sheet is opened") {
                 Then("that asset is not offered, so it cannot be added twice") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.state.first { !it.isLoading }
 
@@ -221,7 +220,7 @@ internal class PortfolioViewModelSpec :
         Given("the add sheet with nothing selected") {
             When("the user confirms") {
                 Then("nothing is added and the sheet stays open") {
-                    runTest {
+                    mviTest {
                         val viewModel = viewModel()
                         viewModel.onAction(PortfolioAction.AddClicked)
 
@@ -267,6 +266,24 @@ private class FakeHoldingsRepository : HoldingsRepository {
         state.value = state.value.filterNot { it.symbol == symbol }
     }
 }
+
+/**
+ * `runTest` with the main dispatcher pointed at that test's own scheduler.
+ *
+ * Calling `setMain` once in `beforeSpec` built a dispatcher carrying a scheduler of its own, so
+ * `viewModelScope` ran on a clock no test ever advanced and `runTest` never awaited it. Every path
+ * exercised here happens to be delay-free, which is the only reason it did not show: a spec for the
+ * debounced search would have read the state from before the delay and passed.
+ */
+private fun mviTest(body: suspend TestScope.() -> Unit): TestResult =
+    runTest {
+        Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+        try {
+            body()
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
 
 private class FakePriceRepository : PriceRepository {
     override fun observePrices(symbols: Set<String>): Flow<Map<String, PriceTick>> =

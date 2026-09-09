@@ -1,7 +1,12 @@
 name: Deploy web
 
+# Gated on CI rather than on the push. Both used to trigger on the same event, independently, so a
+# commit that broke the tests still reached agustinmadina.github.io about two minutes later: the
+# quality gate and the thing it was supposed to gate never met.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -18,9 +23,14 @@ concurrency:
 
 jobs:
   build:
+    # A manual run is a deliberate override. Anything else has to have passed CI first.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # workflow_run checks out the default branch by default, not the commit that was verified.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
       - uses: actions/setup-java@v5
         with:
@@ -30,6 +40,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - run: ./gradlew :shared:wasmJsBrowserDistribution --no-daemon
+
+      # The .wasm files the Kotlin plugin emits are content-hashed and their names are baked into
+      # tickr.js, but tickr.js itself is not, and Pages serves everything with max-age=600. A
+      # returning visitor inside that window reused the cached loader, asked for a .wasm this deploy
+      # had already replaced, got a 404 and sat on the splash for ever with nothing to explain it.
+      #
+      # Hashing the loader leaves index.html as the only unhashed URL. That does not close the
+      # window so much as move it to the one document a browser revalidates on every navigation,
+      # which is the best a replace-the-whole-tree static host allows.
+      - name: Fingerprint the loader
+        run: |
+          set -euo pipefail
+          dist=shared/build/dist/wasmJs/productionExecutable
+          hash=$(sha256sum "$dist/tickr.js" | cut -c1-12)
+          mv "$dist/tickr.js" "$dist/tickr.$hash.js"
+          sed -i "s|src=\"tickr\.js\"|src=\"tickr.$hash.js\"|" "$dist/index.html"
+          grep -q "tickr.$hash.js" "$dist/index.html"
 
       - uses: actions/upload-pages-artifact@v4
         with:

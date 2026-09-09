@@ -3,6 +3,7 @@ package dev.madina.tickr.feature.portfolio.data.repository
 import co.touchlab.kermit.Logger
 import dev.madina.tickr.core.network.TickrJson
 import dev.madina.tickr.feature.portfolio.data.remote.TickerJson
+import dev.madina.tickr.feature.portfolio.data.remote.toPriceTick
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
 import io.ktor.client.HttpClient
@@ -97,24 +98,6 @@ internal class CoinbasePriceRepository(
             logger.w(failure) { "Unparseable frame from the price feed" }
             null
         }
-
-    private fun TickerJson.toPriceTick(symbol: String): PriceTick? {
-        val current = price?.toDoubleOrNull() ?: return null
-        val opening = open24h?.toDoubleOrNull()
-        return PriceTick(
-            symbol = symbol,
-            price = current,
-            // Null, not zero: without an opening price there is no basis for a daily change, and
-            // zero is a claim the feed never made. It used to return zero anyway, directly under
-            // this comment, which reported the position as precisely flat rather than unknown.
-            changePercent24h =
-                if (opening != null && opening > 0) {
-                    (current - opening) / opening * Percent
-                } else {
-                    null
-                },
-        )
-    }
 }
 
 private fun subscribeMessage(productIds: Set<String>): String {
@@ -131,7 +114,6 @@ private fun backoffMillis(failures: Int): Long =
 
 private const val FeedUrl = "wss://ws-feed.exchange.coinbase.com"
 private const val TickerType = "ticker"
-private const val Percent = 100
 private const val InitialBackoffMillis = 1_000L
 private const val MaxBackoffMillis = 30_000L
 private const val MaxBackoffShift = 5

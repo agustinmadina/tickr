@@ -20,6 +20,11 @@ private val libs = extensions.getByType<VersionCatalogsExtension>().named("libs"
 private fun version(alias: String): Int = libs.findVersion(alias).get().requiredVersion.toInt()
 
 kotlin {
+    // Provisioned rather than inherited. Only jvmTarget was set, so the build compiled against
+    // whatever JDK happened to be running it and a contributor on anything below 21 got a compile
+    // error instead of a download.
+    jvmToolchain(21)
+
     android {
         minSdk = version("android-minSdk")
         compileSdk = version("android-compileSdk")

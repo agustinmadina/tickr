@@ -6,8 +6,9 @@ local.properties
 *.iml
 .DS_Store
 
-# Kotlin/JS + wasm
-kotlin-js-store/
+# Kotlin/JS + wasm. kotlin-js-store is deliberately NOT ignored: it holds the yarn lock for the
+# web bundle, and without it CI resolves the npm tree fresh on every deploy, so what ships to the
+# public demo is not reproducible from this repo.
 node_modules/
 
 # Xcode
