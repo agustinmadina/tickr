@@ -37,6 +37,7 @@ include(":shared")
 // Core: domain-agnostic infrastructure. Nothing here may name a business concept.
 include(":core:core-common")
 include(":core:core-domain")
+include(":core:core-network")
 include(":core:core-ui")
 
 // Features: one user-facing slice each, split so the build enforces the dependency direction.

@@ -2,11 +2,11 @@ package dev.madina.tickr.feature.portfolio.data.repository
 
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
-import kotlin.math.abs
-import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlin.math.abs
+import kotlin.random.Random
 
 /**
  * A price feed that moves on its own, without a network.
@@ -22,46 +22,49 @@ import kotlinx.coroutines.flow.flow
 internal class SimulatedPriceRepository(
     private val random: Random = Random.Default,
 ) : PriceRepository {
+    override fun observePrices(symbols: Set<String>): Flow<Map<String, PriceTick>> =
+        flow {
+            val prices = symbols.associateWith { StartingPrices[it] ?: FallbackPrice }.toMutableMap()
 
-    override fun observePrices(symbols: Set<String>): Flow<Map<String, PriceTick>> = flow {
-        val prices = symbols.associateWith { StartingPrices[it] ?: FallbackPrice }.toMutableMap()
+            // The reference is a plausible price from 24h ago rather than today's opening value. When
+            // the two were the same, every row opened at exactly +0.00%, which reads as a dead screen
+            // in the first seconds — the worst possible moment for it.
+            val reference =
+                prices.mapValues { (_, price) ->
+                    price * (1 + (random.nextDouble() - HALF) * TWO * OpeningSpreadFraction)
+                }
 
-        // The reference is a plausible price from 24h ago rather than today's opening value. When
-        // the two were the same, every row opened at exactly +0.00%, which reads as a dead screen
-        // in the first seconds — the worst possible moment for it.
-        val reference = prices.mapValues { (_, price) ->
-            price * (1 + (random.nextDouble() - HALF) * TWO * OpeningSpreadFraction)
-        }
+            var tick = 0
+            while (true) {
+                emit(
+                    prices
+                        .map { (symbol, price) ->
+                            val opening = reference.getValue(symbol)
+                            symbol to
+                                PriceTick(
+                                    symbol = symbol,
+                                    price = price,
+                                    changePercent24h = (price - opening) / opening * PERCENT,
+                                )
+                        }.toMap(),
+                )
 
-        var tick = 0
-        while (true) {
-            emit(
-                prices.map { (symbol, price) ->
-                    val opening = reference.getValue(symbol)
-                    symbol to PriceTick(
-                        symbol = symbol,
-                        price = price,
-                        changePercent24h = (price - opening) / opening * PERCENT,
-                    )
-                }.toMap(),
-            )
+                // The first ticks run fast so the sparklines have a shape almost immediately, then it
+                // settles to a rate that looks like a market rather than a stress test.
+                delay(if (tick < WarmUpTicks) WarmUpIntervalMillis else TickIntervalMillis)
+                tick++
 
-            // The first ticks run fast so the sparklines have a shape almost immediately, then it
-            // settles to a rate that looks like a market rather than a stress test.
-            delay(if (tick < WarmUpTicks) WarmUpIntervalMillis else TickIntervalMillis)
-            tick++
-
-            if (tick < WarmUpTicks) {
-                // Warming up, every symbol moves, so no row is left flat while the others fill in.
-                prices.keys.forEach { symbol -> prices[symbol] = prices.getValue(symbol).nudge() }
-            } else {
-                // Afterwards one symbol moves per tick: moving all of them at once makes every row
-                // animate in lockstep, which looks synthetic.
-                val moving = prices.keys.randomOrNull(random) ?: return@flow
-                prices[moving] = prices.getValue(moving).nudge()
+                if (tick < WarmUpTicks) {
+                    // Warming up, every symbol moves, so no row is left flat while the others fill in.
+                    prices.keys.forEach { symbol -> prices[symbol] = prices.getValue(symbol).nudge() }
+                } else {
+                    // Afterwards one symbol moves per tick: moving all of them at once makes every row
+                    // animate in lockstep, which looks synthetic.
+                    val moving = prices.keys.randomOrNull(random) ?: return@flow
+                    prices[moving] = prices.getValue(moving).nudge()
+                }
             }
         }
-    }
 
     private fun Double.nudge(): Double {
         val drift = (random.nextDouble() - HALF) * MaxStepFraction * TWO
@@ -79,9 +82,10 @@ private const val WarmUpIntervalMillis = 110L
 private const val WarmUpTicks = 14
 private const val FallbackPrice = 1.0
 
-private val StartingPrices = mapOf(
-    "BTC" to 78_601.02,
-    "ETH" to 2_282.15,
-    "SOL" to 102.40,
-    "XRP" to 2.08,
-)
+private val StartingPrices =
+    mapOf(
+        "BTC" to 78_601.02,
+        "ETH" to 2_282.15,
+        "SOL" to 102.40,
+        "XRP" to 2.08,
+    )

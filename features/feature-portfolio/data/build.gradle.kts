@@ -1,5 +1,6 @@
 plugins {
     id("tickr.kmp.library")
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -11,11 +12,15 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":features:feature-portfolio:domain"))
             implementation(project(":core:core-common"))
+            implementation(project(":core:core-network"))
             implementation(libs.koin.core)
+            implementation(libs.kermit)
+            implementation(libs.kotlinx.serialization.json)
         }
 
         commonTest.dependencies {
             implementation(libs.kotlinx.coroutinesTest)
+            implementation(libs.ktor.client.mock)
         }
     }
 }
