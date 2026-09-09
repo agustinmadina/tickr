@@ -27,6 +27,15 @@ class SearchAssetsUseCase(
          * of things to add looks like it should do.
          */
         val excludedSymbols: Set<String> = emptySet(),
+        /**
+         * Caps ranked matches only. Browsing with no query returns the whole catalogue.
+         *
+         * Past the exact and prefix matches, ranking degrades to "the query appears somewhere in
+         * this string", and a fortieth result of that kind is not something anyone scrolls to. The
+         * unfiltered list is different: it is not ranked, so a cap there is not a relevance
+         * judgement, it is hiding rows already sitting in memory. It also made the sheet stop at an
+         * arbitrary letter, which reads as the exchange listing forty coins.
+         */
         val limit: Int = DefaultLimit,
     )
 
@@ -39,7 +48,7 @@ class SearchAssetsUseCase(
             // With no query, lead with the assets most people are looking for rather than with
             // whatever the exchange happens to return first, which is alphabetical noise.
             val popular = Popular.mapNotNull { symbol -> catalog.firstOrNull { it.symbol == symbol } }
-            return (popular + catalog).distinct().take(parameters.limit)
+            return (popular + catalog).distinct()
         }
 
         return catalog

@@ -73,14 +73,28 @@ internal class SearchAssetsUseCaseSpec :
                 }
             }
 
-            When("a limit is given") {
+            When("a limit is given and there is a query to rank against") {
                 Then("no more than that many results come back") {
                     runTest {
                         val useCase = useCase(testScheduler)
 
-                        val results = useCase(SearchAssetsUseCase.Params(query = "", limit = 2)).getOrThrow()
+                        val results = useCase(SearchAssetsUseCase.Params(query = "b", limit = 2)).getOrThrow()
 
                         results.size shouldBe 2
+                    }
+                }
+            }
+
+            When("there is no query") {
+                Then("the whole catalogue comes back, limit or not") {
+                    runTest {
+                        // Browsing is not ranked, so a cap is not a relevance judgement: it hides
+                        // rows already in memory and makes the list stop at an arbitrary letter.
+                        val useCase = useCase(testScheduler)
+
+                        val results = useCase(SearchAssetsUseCase.Params(query = "", limit = 2)).getOrThrow()
+
+                        results.size shouldBe Catalogue.size
                     }
                 }
             }
