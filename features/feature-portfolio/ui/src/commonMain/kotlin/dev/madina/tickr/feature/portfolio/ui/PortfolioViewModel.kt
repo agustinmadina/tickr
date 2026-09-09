@@ -46,11 +46,21 @@ internal class PortfolioViewModel(
                         // vertical climb out of nothing while the feed filled in. A point on this
                         // series has to be comparable with the ones beside it, which means it must
                         // cover the whole portfolio.
+                        //
+                        // Adding or removing an asset also breaks comparability: the total jumps by
+                        // the size of the position, and the chart drew that as a cliff, as though
+                        // the market had moved. A different set of holdings is a different series,
+                        // so it starts again.
                         totalHistory =
-                            if (!portfolio.isPartiallyPriced && portfolio.totalValue > 0) {
-                                previous.totalHistory.append(portfolio.totalValue)
-                            } else {
-                                previous.totalHistory
+                            when {
+                                portfolio.holdings.map { it.holding.symbol }.toSet() !=
+                                    previous.holdings.map { it.symbol }.toSet() &&
+                                    previous.holdings.isNotEmpty() -> persistentListOf()
+
+                                !portfolio.isPartiallyPriced && portfolio.totalValue > 0 ->
+                                    previous.totalHistory.append(portfolio.totalValue)
+
+                                else -> previous.totalHistory
                             },
                         isPartiallyPriced = portfolio.isPartiallyPriced,
                         isLoading = false,

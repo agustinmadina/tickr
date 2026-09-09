@@ -67,6 +67,16 @@ internal fun AboutSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
             )
+            // Ten years of work is not visible in a demo, and the reader who opens this sheet is
+            // usually deciding whether the rest is worth their time. "Shipped for" rather than
+            // "worked at": several of these were delivered through consultancies.
+            Text(
+                text =
+                    "10 years shipping mobile. Products for Disney, NewsCorp, WWE, " +
+                        "MarketWatch and Deloitte. Last 5 years in wallets, payments and identity.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+            )
 
             Spacer(Modifier.height(Spacing.ExtraSmall))
 

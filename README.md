@@ -227,13 +227,18 @@ rather than accepting whatever they produce. The setup lives in [`.claude/`](.cl
 
 ## Who built this
 
-**Agustin Madina**, Android and Kotlin Multiplatform engineer.
+**Agustin Madina**, Android and Kotlin Multiplatform engineer. Ten years shipping mobile, from
+solo-founder MVPs to apps with fifty engineers and millions of users.
 
-I build production mobile apps and I wanted a piece that argues for KMP the way I would in a
-conversation: not with a shared networking layer and three sets of screens, but with one
-implementation of everything, running where you can click it. The decisions I would defend in a
-review are written down next to the code that makes them, including the ones where I chose the less
-impressive option on purpose.
+Products for **Disney**, **NewsCorp**, **WWE**, **MarketWatch** and **Deloitte**. The last five
+years in wallets, payments and decentralized identity: multi-chain transaction signing for Bitcoin,
+XRP and Solana, debit card and ACH flows, and a refactor of a production wallet from RxJava to
+Coroutines and from views to Compose without pausing delivery.
+
+I wanted a piece that argues for KMP the way I would in a conversation: not with a shared networking
+layer and three sets of screens, but with one implementation of everything, running where you can
+click it. The decisions I would defend in a review are written down next to the code that makes
+them, including the ones where I chose the less impressive option on purpose.
 
 - [LinkedIn](https://www.linkedin.com/in/agustin-madina/)
 - [github.com/agustinmadina](https://github.com/agustinmadina)

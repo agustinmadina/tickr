@@ -145,6 +145,30 @@ internal class PortfolioViewModelSpec :
             }
         }
 
+        Given("a chart built up over a session") {
+            When("an asset is added, changing what the total covers") {
+                Then("the series restarts, since a bigger portfolio is not a market move") {
+                    runTest {
+                        val viewModel = viewModel()
+                        viewModel.state.first { it.totalHistory.isNotEmpty() }
+
+                        viewModel.onAction(PortfolioAction.AddClicked)
+                        viewModel.state.first { it.assetResults.isNotEmpty() }
+                        viewModel.onAction(PortfolioAction.AssetSelected("ETH"))
+                        viewModel.onAction(
+                            PortfolioAction.AddConfirmed(quantity = "1", averageCost = "10"),
+                        )
+
+                        // Not "the series is empty": it restarts and immediately begins filling
+                        // again. What matters is that it no longer carries the previous
+                        // portfolio's total, which is the value the cliff was drawn from.
+                        val history = viewModel.state.first { it.holdings.size == 2 }.totalHistory
+                        history shouldNotContain SingleHoldingTotal
+                    }
+                }
+            }
+        }
+
         Given("an asset already held") {
             When("the add sheet is opened") {
                 Then("that asset is not offered, so it cannot be added twice") {
@@ -176,6 +200,9 @@ internal class PortfolioViewModelSpec :
             }
         }
     })
+
+/** BTC alone, 2 units at 150. Adding ETH takes the total past this, so the old value must go. */
+private const val SingleHoldingTotal = 300f
 
 private fun viewModel(): PortfolioViewModel {
     val dispatcher = UnconfinedTestDispatcher()
