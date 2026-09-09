@@ -35,7 +35,12 @@ import dev.madina.tickr.core.ui.theme.Sizing
 import dev.madina.tickr.core.ui.theme.Spacing
 import dev.madina.tickr.core.ui.theme.SurfaceElevated
 import dev.madina.tickr.core.ui.theme.TextSecondary
+import dev.madina.tickr.feature.portfolio.ui.Pending
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
+import org.jetbrains.compose.resources.stringResource
+import tickr.features.feature_portfolio.ui.generated.resources.Res
+import tickr.features.feature_portfolio.ui.generated.resources.holding_change_window
+import tickr.features.feature_portfolio.ui.generated.resources.holding_quantity
 
 @Composable
 internal fun HoldingCard(
@@ -76,7 +81,12 @@ internal fun HoldingCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = "${holding.quantity.formatQuantity()} ${holding.symbol}",
+                    text =
+                        stringResource(
+                            Res.string.holding_quantity,
+                            holding.quantity.formatQuantity(),
+                            holding.symbol,
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                     maxLines = 1,
@@ -115,7 +125,7 @@ internal fun HoldingCard(
                     // A position whose price has not arrived reads as pending, not as worth zero.
                     // ASCII on purpose: the web build's bundled font has no em dash.
                     Text(
-                        text = "--",
+                        text = Pending,
                         style = MaterialTheme.typography.titleMedium,
                         color = TextSecondary,
                     )
@@ -131,7 +141,7 @@ internal fun HoldingCard(
                         )
                         Spacer(Modifier.width(Spacing.ExtraSmall))
                         Text(
-                            text = "24h",
+                            text = stringResource(Res.string.holding_change_window),
                             style = MaterialTheme.typography.labelSmall,
                             color = TextSecondary,
                         )

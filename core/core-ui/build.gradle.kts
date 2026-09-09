@@ -17,6 +17,7 @@ kotlin {
             api(libs.koin.compose)
             api(libs.koin.compose.viewmodel)
             api(libs.kotlinx.collections.immutable)
+            api(libs.kermit)
             implementation(libs.kotlinx.coroutinesCore)
         }
     }

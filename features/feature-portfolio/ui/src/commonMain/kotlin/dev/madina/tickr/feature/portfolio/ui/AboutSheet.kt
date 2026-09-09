@@ -23,6 +23,21 @@ import dev.madina.tickr.core.ui.theme.Radius
 import dev.madina.tickr.core.ui.theme.Spacing
 import dev.madina.tickr.core.ui.theme.SurfaceElevated
 import dev.madina.tickr.core.ui.theme.TextSecondary
+import org.jetbrains.compose.resources.stringResource
+import tickr.features.feature_portfolio.ui.generated.resources.Res
+import tickr.features.feature_portfolio.ui.generated.resources.about_demonstrates_title
+import tickr.features.feature_portfolio.ui.generated.resources.about_link_email
+import tickr.features.feature_portfolio.ui.generated.resources.about_link_linkedin
+import tickr.features.feature_portfolio.ui.generated.resources.about_link_source
+import tickr.features.feature_portfolio.ui.generated.resources.about_name
+import tickr.features.feature_portfolio.ui.generated.resources.about_point_api
+import tickr.features.feature_portfolio.ui.generated.resources.about_point_architecture
+import tickr.features.feature_portfolio.ui.generated.resources.about_point_compose
+import tickr.features.feature_portfolio.ui.generated.resources.about_point_persistence
+import tickr.features.feature_portfolio.ui.generated.resources.about_point_tests
+import tickr.features.feature_portfolio.ui.generated.resources.about_role
+import tickr.features.feature_portfolio.ui.generated.resources.about_track_record
+import tickr.features.feature_portfolio.ui.generated.resources.about_what_this_is
 
 /**
  * Who built this and what it is meant to show.
@@ -58,12 +73,12 @@ internal fun AboutSheet(
             verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
         ) {
             Text(
-                text = "Agustin Madina",
+                text = stringResource(Res.string.about_name),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Android and Kotlin Multiplatform engineer",
+                text = stringResource(Res.string.about_role),
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
             )
@@ -71,9 +86,7 @@ internal fun AboutSheet(
             // usually deciding whether the rest is worth their time. "Shipped for" rather than
             // "worked at": several of these were delivered through consultancies.
             Text(
-                text =
-                    "10 years shipping mobile. Products for Disney, NewsCorp, WWE, " +
-                        "MarketWatch and Deloitte. Last 5 years in wallets, payments and identity.",
+                text = stringResource(Res.string.about_track_record),
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
             )
@@ -81,11 +94,7 @@ internal fun AboutSheet(
             Spacer(Modifier.height(Spacing.ExtraSmall))
 
             Text(
-                text =
-                    "You are looking at one Kotlin codebase running on Android, iOS and the " +
-                        "web. Not just the data layer: every screen, chart and animation here is a " +
-                        "single implementation, and the platform-specific code is three launchers of " +
-                        "about twenty lines each.",
+                text = stringResource(Res.string.about_what_this_is),
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
             )
@@ -93,30 +102,30 @@ internal fun AboutSheet(
             Spacer(Modifier.height(Spacing.ExtraSmall))
 
             Text(
-                text = "WHAT IT DEMONSTRATES",
+                text = stringResource(Res.string.about_demonstrates_title),
                 style = MaterialTheme.typography.labelMedium,
                 color = TextSecondary,
             )
-            Highlight("Compose Multiplatform, including WebAssembly")
-            Highlight("Live prices over a WebSocket, plus REST for the asset catalogue")
-            Highlight("Clean architecture the build system enforces, not the reviewer")
-            Highlight("Persistence per platform behind one expect/actual")
-            Highlight("Kotest specs and CI across all three targets")
+            Highlight(stringResource(Res.string.about_point_compose))
+            Highlight(stringResource(Res.string.about_point_api))
+            Highlight(stringResource(Res.string.about_point_architecture))
+            Highlight(stringResource(Res.string.about_point_persistence))
+            Highlight(stringResource(Res.string.about_point_tests))
 
             Spacer(Modifier.height(Spacing.Small))
 
             LinkRow(
-                label = "Source code",
+                label = stringResource(Res.string.about_link_source),
                 value = "github.com/agustinmadina/tickr",
                 onClick = { uriHandler.openUri("https://github.com/agustinmadina/tickr") },
             )
             LinkRow(
-                label = "LinkedIn",
+                label = stringResource(Res.string.about_link_linkedin),
                 value = "in/agustin-madina",
                 onClick = { uriHandler.openUri("https://www.linkedin.com/in/agustin-madina/") },
             )
             LinkRow(
-                label = "Email",
+                label = stringResource(Res.string.about_link_email),
                 value = "agustinmadina@gmail.com",
                 onClick = { uriHandler.openUri("mailto:agustinmadina@gmail.com") },
             )

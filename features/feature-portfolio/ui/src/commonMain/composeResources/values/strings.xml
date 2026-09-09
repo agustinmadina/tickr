@@ -1,0 +1,72 @@
+<resources>
+    <!-- Overview -->
+    <string name="portfolio_title">YOUR PORTFOLIO</string>
+    <string name="portfolio_title_scrubbing">AT THIS POINT</string>
+    <string name="portfolio_pricing_badge">PRICING</string>
+    <string name="portfolio_chart_window">since you opened the app</string>
+    <string name="portfolio_day_change_suffix">today</string>
+    <!-- %1$s is a signed amount, %2$s a percentage in parentheses or empty. -->
+    <string name="portfolio_scrubbed_change">%1$s%2$s since this chart started</string>
+    <string name="portfolio_return_vs_cost">%1$s (%2$s) vs what you paid</string>
+    <string name="portfolio_add_asset">+  Add asset</string>
+    <string name="portfolio_offline_banner">Offline. Showing what you hold, without live prices.</string>
+    <string name="portfolio_empty_title">Nothing here yet</string>
+    <string name="portfolio_empty_body">Add an asset to start tracking what it is worth.</string>
+    <string name="portfolio_byline_prefix">by </string>
+    <string name="portfolio_author">Agustin Madina</string>
+
+    <!-- Two pane placeholder -->
+    <string name="detail_placeholder_title">Pick an asset</string>
+    <string name="detail_placeholder_body">Its chart and figures appear here.</string>
+
+    <!-- Holding detail -->
+    <string name="detail_back">Back</string>
+    <string name="detail_removed">This asset is no longer in your portfolio.</string>
+    <string name="detail_scrubbing_label">at this point</string>
+    <string name="detail_today_change">%1$s today</string>
+    <string name="detail_row_holdings">Holdings</string>
+    <string name="detail_row_market_value">Market value</string>
+    <string name="detail_row_profit">Profit</string>
+    <string name="detail_row_return">Return since you bought</string>
+    <string name="detail_remove">Remove from portfolio</string>
+
+    <!-- Holding row -->
+    <!-- %1$s is a quantity, %2$s the asset symbol. -->
+    <string name="holding_quantity">%1$s %2$s</string>
+    <string name="holding_change_window">24h</string>
+
+    <!-- Add an asset -->
+    <string name="add_title">Add an asset</string>
+    <string name="add_subtitle">Search anything Coinbase quotes in USD.</string>
+    <string name="add_search_label">Search</string>
+    <string name="add_search_placeholder">bitcoin</string>
+    <string name="add_no_matches">Nothing matches that.</string>
+    <string name="add_cost_explainer">The price comes from Coinbase. What you paid is the one thing it cannot know.</string>
+    <string name="add_quantity_label">Quantity</string>
+    <string name="add_cost_label">Paid per unit</string>
+    <string name="add_cost_placeholder">USD</string>
+    <!-- %1$s is an asset symbol. -->
+    <string name="add_confirm">Add %1$s to portfolio</string>
+    <string name="add_change_asset">Change</string>
+
+    <!-- About -->
+    <string name="about_name">Agustin Madina</string>
+    <string name="about_role">Android and Kotlin Multiplatform engineer</string>
+    <string name="about_track_record">10 years shipping mobile. Products for Disney, NewsCorp, WWE, MarketWatch and Deloitte. Last 5 years in wallets, payments and identity.</string>
+    <string name="about_what_this_is">You are looking at one Kotlin codebase running on Android, iOS and the web. Not just the data layer: every screen, chart and animation here is a single implementation, and the platform-specific code is three launchers of about twenty lines each.</string>
+    <string name="about_demonstrates_title">WHAT IT DEMONSTRATES</string>
+    <string name="about_point_compose">Compose Multiplatform, including WebAssembly</string>
+    <string name="about_point_api">Live prices over a WebSocket, plus REST for the asset catalogue</string>
+    <string name="about_point_architecture">Clean architecture the build system enforces, not the reviewer</string>
+    <string name="about_point_persistence">Persistence per platform behind one expect/actual</string>
+    <string name="about_point_tests">Kotest specs and CI across all three targets</string>
+    <string name="about_link_source">Source code</string>
+    <string name="about_link_linkedin">LinkedIn</string>
+    <string name="about_link_email">Email</string>
+
+    <!-- Messages the ViewModel raises, resolved to copy by the screen. -->
+    <string name="message_pick_an_asset">Pick an asset first</string>
+    <string name="message_numbers_required">Quantity and average cost must be numbers</string>
+    <string name="message_catalogue_unavailable">Could not load the asset list. Check your connection.</string>
+    <string name="message_generic_failure">Something went wrong</string>
+</resources>

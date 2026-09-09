@@ -1,5 +1,6 @@
 package dev.madina.tickr.feature.portfolio.domain.usecase
 
+import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
 import dev.madina.tickr.feature.portfolio.domain.model.Holding
 import dev.madina.tickr.feature.portfolio.domain.model.Portfolio
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
@@ -139,4 +140,6 @@ private class FakePriceRepository(
         requestedSymbols += symbols
         return MutableStateFlow(quotes.filterKeys { it in symbols })
     }
+
+    override fun observeStatus(): Flow<FeedStatus> = MutableStateFlow(FeedStatus.Live)
 }

@@ -4,6 +4,7 @@ import co.touchlab.kermit.Logger
 import dev.madina.tickr.core.network.TickrJson
 import dev.madina.tickr.feature.portfolio.data.remote.TickerJson
 import dev.madina.tickr.feature.portfolio.data.remote.toPriceTick
+import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
 import io.ktor.client.HttpClient
@@ -13,6 +14,7 @@ import io.ktor.websocket.readText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.isActive
@@ -45,6 +47,10 @@ internal class CoinbasePriceRepository(
      */
     private val cache = MutableStateFlow<Map<String, PriceTick>>(emptyMap())
 
+    private val status = MutableStateFlow(FeedStatus.Connecting)
+
+    override fun observeStatus(): Flow<FeedStatus> = status.asStateFlow()
+
     override fun observePrices(symbols: Set<String>): Flow<Map<String, PriceTick>> =
         channelFlow {
             // Emitted before the socket is even attempted. This flow is combined with the holdings
@@ -73,13 +79,18 @@ internal class CoinbasePriceRepository(
                             // dropped reset the count every attempt, which turned the capped backoff
                             // into a reconnect every second for as long as the app was open.
                             failures = 0
+                            status.value = FeedStatus.Live
                             val updated = cache.updateAndGet { it + (symbol to tick) }
                             this@channelFlow.send(updated.filterKeys { it in symbols })
                         }
                     }
+                    // Reached when the socket closes cleanly, which is still a feed that has
+                    // stopped delivering.
+                    status.value = FeedStatus.Disconnected
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (failure: Exception) {
+                    status.value = FeedStatus.Disconnected
                     // A dropped feed is expected on mobile, so it is logged and retried rather than
                     // surfaced as an error: the UI keeps showing the last known prices meanwhile.
                     logger.w(failure) { "Price feed disconnected, retrying" }

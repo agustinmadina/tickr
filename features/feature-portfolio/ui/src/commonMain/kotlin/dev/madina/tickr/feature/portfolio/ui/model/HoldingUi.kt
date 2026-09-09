@@ -9,7 +9,7 @@ import kotlinx.collections.immutable.ImmutableList
  * Amounts stay as `Double` rather than pre-formatted strings because the screen animates between
  * them; a string cannot be interpolated. Formatting happens at the point of display.
  */
-data class HoldingUi(
+internal data class HoldingUi(
     val symbol: String,
     val name: String,
     val quantity: Double,

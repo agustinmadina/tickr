@@ -2,6 +2,7 @@ package dev.madina.tickr.core.ui.mvi
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,6 +39,15 @@ abstract class BaseViewModel<ACTION, EFFECT, STATE>(
     val effects: Flow<EFFECT> = mutableEffects.asSharedFlow()
 
     protected val currentState: STATE get() = mutableState.value
+
+    /**
+     * Every failure a screen swallows should still be readable somewhere.
+     *
+     * The presentation layer turns exceptions into copy, so without this the reason a message
+     * appeared exists nowhere: not in logcat, not in the Safari console, nowhere a bug report could
+     * reach it.
+     */
+    protected val log: Logger = Logger.withTag(this::class.simpleName ?: "ViewModel")
 
     abstract fun onAction(action: ACTION)
 

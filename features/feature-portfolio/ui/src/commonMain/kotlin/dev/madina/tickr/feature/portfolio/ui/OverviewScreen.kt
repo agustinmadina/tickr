@@ -50,6 +50,21 @@ import dev.madina.tickr.core.ui.theme.TextSecondary
 import dev.madina.tickr.feature.portfolio.ui.component.HoldingCard
 import dev.madina.tickr.feature.portfolio.ui.component.PortfolioSkeleton
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.compose.resources.stringResource
+import tickr.features.feature_portfolio.ui.generated.resources.Res
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_add_asset
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_author
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_byline_prefix
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_chart_window
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_day_change_suffix
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_empty_body
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_empty_title
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_offline_banner
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_pricing_badge
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_return_vs_cost
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_scrubbed_change
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_title
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_title_scrubbing
 
 @Composable
 internal fun OverviewScreen(
@@ -101,12 +116,16 @@ internal fun OverviewScreen(
                         // The third window on this screen, after all time above and 24h below.
                         // Unlabelled, a rising chart over four falling rows reads as a bug.
                         Text(
-                            text = "since you opened the app",
+                            text = stringResource(Res.string.portfolio_chart_window),
                             style = MaterialTheme.typography.labelSmall,
                             color = TextSecondary,
                         )
                     }
                 }
+            }
+
+            if (state.isFeedDown) {
+                item { FeedDownBanner() }
             }
 
             if (state.holdings.isNotEmpty()) {
@@ -166,7 +185,7 @@ private fun AddAssetRow(onClick: () -> Unit, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "+  Add asset",
+                text = stringResource(Res.string.portfolio_add_asset),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -182,6 +201,25 @@ private fun AddAssetRow(onClick: () -> Unit, modifier: Modifier = Modifier) {
  * way of the app itself, and tapping it explains the project rather than just crediting it.
  */
 @Composable
+private fun FeedDownBanner() {
+    // Prices are not persisted, so offline every value on this screen is blank. Saying so turns a
+    // screen that looks broken into one that looks deliberate, and it is cheaper than caching a
+    // quote whose age the user cannot see.
+    Surface(
+        color = Negative.copy(alpha = BannerFillAlpha),
+        shape = RoundedCornerShape(Radius.Medium),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = stringResource(Res.string.portfolio_offline_banner),
+            style = MaterialTheme.typography.bodySmall,
+            color = Negative,
+            modifier = Modifier.padding(Spacing.Medium),
+        )
+    }
+}
+
+@Composable
 private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -196,7 +234,7 @@ private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "by ",
+                text = stringResource(Res.string.portfolio_byline_prefix),
                 style = MaterialTheme.typography.labelSmall,
                 color = TextSecondary,
             )
@@ -205,7 +243,7 @@ private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
             // tappable, from the add row to the links in the sheet. So it needs no icon, border or
             // extra element to be understood as one.
             Text(
-                text = "Agustin Madina",
+                text = stringResource(Res.string.portfolio_author),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -218,19 +256,26 @@ private fun PortfolioHeader(state: PortfolioUiState) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = if (state.isScrubbing) "AT THIS POINT" else "YOUR PORTFOLIO",
+                text =
+                    stringResource(
+                        if (state.isScrubbing) {
+                            Res.string.portfolio_title_scrubbing
+                        } else {
+                            Res.string.portfolio_title
+                        },
+                    ),
                 style = MaterialTheme.typography.labelMedium,
                 color = TextSecondary,
             )
             AnimatedVisibility(
-                visible = state.isPartiallyPriced && !state.isScrubbing,
+                visible = state.isPartiallyPriced && !state.isUnpriced && !state.isScrubbing,
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Spacer(Modifier.width(Spacing.Small))
                     Text(
-                        text = "PRICING",
+                        text = stringResource(Res.string.portfolio_pricing_badge),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -249,6 +294,14 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onBackground,
             )
+        } else if (state.isUnpriced) {
+            // Unknown, not zero. $0.00 here is a statement about the portfolio's worth, and it is
+            // the wrong one.
+            Text(
+                text = Pending,
+                style = MaterialTheme.typography.displayLarge,
+                color = TextSecondary,
+            )
         } else {
             // No tint on the headline figure: at this size a red total reads as an error rather
             // than as a downtick, and it fought with the profit line right underneath it.
@@ -264,7 +317,10 @@ private fun PortfolioHeader(state: PortfolioUiState) {
         Spacer(Modifier.height(Spacing.ExtraSmall))
 
         val scrubbedChange = state.scrubbedChange
-        if (scrubbedChange != null) {
+        if (state.isUnpriced) {
+            // Every figure below the headline is derived from prices, so there is nothing truthful
+            // to put here. The banner above says why.
+        } else if (scrubbedChange != null) {
             // Money and percent, worded exactly as the detail screen does while scrubbing: the two
             // charts behave the same way, so reading one should teach you the other.
             val percentSuffix =
@@ -272,7 +328,12 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                     ?.let { " (${it.formatPercent()})" }
                     .orEmpty()
             Text(
-                text = "${scrubbedChange.formatSignedUsd()}$percentSuffix since this chart started",
+                text =
+                    stringResource(
+                        Res.string.portfolio_scrubbed_change,
+                        scrubbedChange.formatSignedUsd(),
+                        percentSuffix,
+                    ),
                 style = MaterialTheme.typography.titleMedium,
                 color = if (scrubbedChange >= 0) Positive else Negative,
             )
@@ -298,7 +359,7 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 }
                 Spacer(Modifier.width(Spacing.Small))
                 Text(
-                    text = "today",
+                    text = stringResource(Res.string.portfolio_day_change_suffix),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                 )
@@ -310,8 +371,11 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 Spacer(Modifier.height(Spacing.ExtraSmall))
                 Text(
                     text =
-                        "${state.totalProfit.formatSignedUsd()} (${percent.formatPercent()}) " +
-                            "vs what you paid",
+                        stringResource(
+                            Res.string.portfolio_return_vs_cost,
+                            state.totalProfit.formatSignedUsd(),
+                            percent.formatPercent(),
+                        ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary,
                 )
@@ -327,13 +391,13 @@ private fun EmptyState() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "Nothing here yet",
+            text = stringResource(Res.string.portfolio_empty_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Spacer(Modifier.height(Spacing.Small))
         Text(
-            text = "Add an asset to start tracking what it is worth.",
+            text = stringResource(Res.string.portfolio_empty_body),
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
             textAlign = TextAlign.Center,
@@ -341,6 +405,9 @@ private fun EmptyState() {
         Spacer(Modifier.size(Spacing.Large))
     }
 }
+
+/** Tinted, not solid: a warning the reader can skip past, not an error state. */
+private const val BannerFillAlpha = 0.12f
 
 private const val SkeletonRowCount = 4
 

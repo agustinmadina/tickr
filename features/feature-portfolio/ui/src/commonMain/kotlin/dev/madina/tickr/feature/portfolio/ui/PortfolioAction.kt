@@ -1,6 +1,6 @@
 package dev.madina.tickr.feature.portfolio.ui
 
-sealed interface PortfolioAction {
+internal sealed interface PortfolioAction {
     data class HoldingClicked(
         val symbol: String,
     ) : PortfolioAction

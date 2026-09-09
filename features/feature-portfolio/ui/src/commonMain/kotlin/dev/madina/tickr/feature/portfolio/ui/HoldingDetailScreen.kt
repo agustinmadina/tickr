@@ -44,6 +44,19 @@ import dev.madina.tickr.core.ui.theme.Spacing
 import dev.madina.tickr.core.ui.theme.SurfaceElevated
 import dev.madina.tickr.core.ui.theme.TextSecondary
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
+import org.jetbrains.compose.resources.stringResource
+import tickr.features.feature_portfolio.ui.generated.resources.Res
+import tickr.features.feature_portfolio.ui.generated.resources.detail_back
+import tickr.features.feature_portfolio.ui.generated.resources.detail_remove
+import tickr.features.feature_portfolio.ui.generated.resources.detail_removed
+import tickr.features.feature_portfolio.ui.generated.resources.detail_row_holdings
+import tickr.features.feature_portfolio.ui.generated.resources.detail_row_market_value
+import tickr.features.feature_portfolio.ui.generated.resources.detail_row_profit
+import tickr.features.feature_portfolio.ui.generated.resources.detail_row_return
+import tickr.features.feature_portfolio.ui.generated.resources.detail_scrubbing_label
+import tickr.features.feature_portfolio.ui.generated.resources.detail_today_change
+import tickr.features.feature_portfolio.ui.generated.resources.holding_quantity
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_scrubbed_change
 
 @Composable
 internal fun HoldingDetailScreen(
@@ -67,7 +80,10 @@ internal fun HoldingDetailScreen(
                 TextButton(onClick = { onAction(PortfolioAction.BackClicked) }) {
                     BackChevron(color = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(Spacing.Small))
-                    Text(text = "Back", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = stringResource(Res.string.detail_back),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
                 }
             } else {
                 Spacer(Modifier.height(Spacing.Large))
@@ -77,7 +93,7 @@ internal fun HoldingDetailScreen(
             // surface. Rendering a message beats rendering a screen full of dashes.
             if (holding == null) {
                 Text(
-                    text = "This asset is no longer in your portfolio.",
+                    text = stringResource(Res.string.detail_removed),
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextSecondary,
                     modifier = Modifier.padding(top = Spacing.ExtraLarge),
@@ -122,14 +138,19 @@ internal fun HoldingDetailScreen(
 
                 if (changeSinceStart == null) {
                     Text(
-                        text = "at this point",
+                        text = stringResource(Res.string.detail_scrubbing_label),
                         style = MaterialTheme.typography.titleMedium,
                         color = TextSecondary,
                     )
                 } else {
                     val percentSuffix = percentSinceStart?.let { " (${it.formatPercent()})" }.orEmpty()
                     Text(
-                        text = "${changeSinceStart.formatSignedUsd()}$percentSuffix since this chart started",
+                        text =
+                            stringResource(
+                                Res.string.portfolio_scrubbed_change,
+                                changeSinceStart.formatSignedUsd(),
+                                percentSuffix,
+                            ),
                         style = MaterialTheme.typography.titleMedium,
                         color = if (changeSinceStart >= 0) Positive else Negative,
                     )
@@ -144,7 +165,7 @@ internal fun HoldingDetailScreen(
                 }
                 holding.changePercent24h?.let { change ->
                     Text(
-                        text = "${change.formatPercent()} today",
+                        text = stringResource(Res.string.detail_today_change, change.formatPercent()),
                         style = MaterialTheme.typography.titleMedium,
                         color = if (change >= 0) Positive else Negative,
                     )
@@ -168,18 +189,29 @@ internal fun HoldingDetailScreen(
                     modifier = Modifier.fillMaxWidth().padding(Spacing.Large),
                     verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
                 ) {
-                    DetailRow("Holdings", "${holding.quantity.formatQuantity()} ${holding.symbol}")
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                    DetailRow("Market value", holding.value?.formatUsd() ?: Pending)
+                    DetailRow(
+                        label = stringResource(Res.string.detail_row_holdings),
+                        value =
+                            stringResource(
+                                Res.string.holding_quantity,
+                                holding.quantity.formatQuantity(),
+                                holding.symbol,
+                            ),
+                    )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                     DetailRow(
-                        label = "Profit",
+                        label = stringResource(Res.string.detail_row_market_value),
+                        value = holding.value?.formatUsd() ?: Pending,
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                    DetailRow(
+                        label = stringResource(Res.string.detail_row_profit),
                         value = holding.profit?.formatSignedUsd() ?: Pending,
                         valueColor = holding.profit?.let { if (it >= 0) Positive else Negative },
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                     DetailRow(
-                        label = "Return since you bought",
+                        label = stringResource(Res.string.detail_row_return),
                         value = holding.returnPercent?.formatPercent() ?: Pending,
                         valueColor = holding.returnPercent?.let { if (it >= 0) Positive else Negative },
                     )
@@ -192,7 +224,7 @@ internal fun HoldingDetailScreen(
                 onClick = { onAction(PortfolioAction.RemoveClicked(holding.symbol)) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(text = "Remove from portfolio", color = Negative)
+                Text(text = stringResource(Res.string.detail_remove), color = Negative)
             }
 
             Spacer(Modifier.height(Spacing.Huge))
@@ -220,5 +252,4 @@ private fun DetailRow(
 }
 
 /** ASCII on purpose: an em dash is another glyph the web build's bundled font may not carry. */
-private const val Pending = "--"
 private const val Percent = 100

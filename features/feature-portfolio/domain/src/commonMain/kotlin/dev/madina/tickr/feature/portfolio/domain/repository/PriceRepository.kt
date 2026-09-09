@@ -1,5 +1,6 @@
 package dev.madina.tickr.feature.portfolio.domain.repository
 
+import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
 import kotlinx.coroutines.flow.Flow
 
@@ -12,4 +13,13 @@ interface PriceRepository {
      * waiting for each asset to tick once.
      */
     fun observePrices(symbols: Set<String>): Flow<Map<String, PriceTick>>
+
+    /**
+     * Whether the feed is currently delivering.
+     *
+     * Separate from [observePrices] because it outlives any one subscription: the symbol set
+     * changes whenever a holding is added, which tears that flow down, and the state of the
+     * connection is not reset by an edit to the portfolio.
+     */
+    fun observeStatus(): Flow<FeedStatus>
 }

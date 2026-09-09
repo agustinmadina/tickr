@@ -1,8 +1,10 @@
 package dev.madina.tickr.feature.portfolio.ui
 
 import androidx.lifecycle.viewModelScope
+import dev.madina.tickr.core.domain.usecase.invoke
 import dev.madina.tickr.core.ui.mvi.BaseViewModel
 import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
+import dev.madina.tickr.feature.portfolio.domain.usecase.ObserveFeedStatusUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.SearchAssetsUseCase
@@ -20,6 +22,7 @@ import kotlinx.coroutines.launch
 
 internal class PortfolioViewModel(
     private val observePortfolio: ObservePortfolioUseCase,
+    private val observeFeedStatus: ObserveFeedStatusUseCase,
     private val addHolding: AddHoldingUseCase,
     private val removeHolding: RemoveHoldingUseCase,
     private val searchAssets: SearchAssetsUseCase,
@@ -28,7 +31,7 @@ internal class PortfolioViewModel(
     private var searchJob: Job? = null
 
     init {
-        observePortfolio(Unit)
+        observePortfolio()
             .onEach { portfolio ->
                 updateState { previous ->
                     // Adding or removing an asset also breaks comparability: the total jumps by the
@@ -72,10 +75,18 @@ internal class PortfolioViewModel(
                     )
                 }
             }.catch { throwable ->
-                updateState { it.copy(isLoading = false, errorMessage = throwable.readableMessage()) }
+                log.e(throwable) { "The portfolio stream failed" }
+                updateState { it.copy(isLoading = false, errorMessage = UiMessage.GenericFailure) }
             }
             // launchIn, not launch { collect { } }: with collect, an exception kills the enclosing
             // coroutine and anything after it never runs, silently.
+            .launchIn(viewModelScope)
+
+        // A separate stream rather than a combine: the feed blinks on its own schedule and has
+        // nothing to say about what the portfolio is worth.
+        observeFeedStatus()
+            .onEach { status -> updateState { it.copy(feedStatus = status) } }
+            .catch { throwable -> log.e(throwable) { "The feed status stream failed" } }
             .launchIn(viewModelScope)
     }
 
@@ -189,10 +200,11 @@ internal class PortfolioViewModel(
                         )
                     }
                 }.onFailure { throwable ->
+                    log.e(throwable) { "Could not load the asset catalogue" }
                     updateState {
                         it.copy(
                             isCatalogLoading = false,
-                            catalogError = "Could not load the asset list. Check your connection.",
+                            catalogError = UiMessage.CatalogueUnavailable,
                         )
                     }
                 }
@@ -202,7 +214,7 @@ internal class PortfolioViewModel(
     private fun confirmAdd(action: PortfolioAction.AddConfirmed) {
         val asset = currentState.selectedAsset
         if (asset == null) {
-            emitEffect(PortfolioEffect.ShowMessage("Pick an asset first"))
+            emitEffect(PortfolioEffect.ShowMessage(UiMessage.PickAnAssetFirst))
             return
         }
 
@@ -219,7 +231,7 @@ internal class PortfolioViewModel(
                 .toDoubleOrNull()
                 ?.takeIf { it.isFinite() }
         if (quantity == null || averageCost == null) {
-            emitEffect(PortfolioEffect.ShowMessage("Quantity and average cost must be numbers"))
+            emitEffect(PortfolioEffect.ShowMessage(UiMessage.NumbersRequired))
             return
         }
 
@@ -241,7 +253,8 @@ internal class PortfolioViewModel(
                     )
                 }
             }.onFailure { throwable ->
-                emitEffect(PortfolioEffect.ShowMessage(throwable.readableMessage()))
+                log.e(throwable) { "Could not add the holding" }
+                emitEffect(PortfolioEffect.ShowMessage(UiMessage.GenericFailure))
             }
         }
     }
@@ -253,14 +266,12 @@ internal class PortfolioViewModel(
                     // Leaving the detail open would show a position that no longer exists.
                     updateState { it.copy(destination = PortfolioDestination.Overview) }
                 }.onFailure { throwable ->
-                    emitEffect(PortfolioEffect.ShowMessage(throwable.readableMessage()))
+                    log.e(throwable) { "Could not remove the holding" }
+                    emitEffect(PortfolioEffect.ShowMessage(UiMessage.GenericFailure))
                 }
         }
     }
 }
-
-private fun Throwable.readableMessage(): String =
-    message?.takeIf { it.isNotBlank() } ?: "Something went wrong"
 
 /**
  * Appends a sample to the total's history, dropping a repeat of the last value.

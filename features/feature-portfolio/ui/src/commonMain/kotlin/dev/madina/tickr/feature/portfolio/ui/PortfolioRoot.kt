@@ -30,7 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.madina.tickr.core.ui.theme.Spacing
 import dev.madina.tickr.core.ui.theme.TextSecondary
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import tickr.features.feature_portfolio.ui.generated.resources.Res
+import tickr.features.feature_portfolio.ui.generated.resources.detail_placeholder_body
+import tickr.features.feature_portfolio.ui.generated.resources.detail_placeholder_title
 
 /**
  * Host for the feature.
@@ -50,7 +55,8 @@ fun PortfolioRoot(modifier: Modifier = Modifier) {
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                is PortfolioEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
+                is PortfolioEffect.ShowMessage ->
+                    snackbarHostState.showSnackbar(getString(effect.message.resource))
             }
         }
     }
@@ -156,12 +162,12 @@ private fun EmptyDetailPane() {
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = "Pick an asset",
+            text = stringResource(Res.string.detail_placeholder_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Text(
-            text = "Its chart and figures appear here.",
+            text = stringResource(Res.string.detail_placeholder_body),
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
         )

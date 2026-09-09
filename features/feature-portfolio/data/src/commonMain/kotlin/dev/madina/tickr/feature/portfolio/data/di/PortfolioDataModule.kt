@@ -17,9 +17,8 @@ import org.koin.dsl.module
  * The implementations are `internal`, so this module is the only way out of the data layer. That is
  * what stops the ui module from reaching past the domain interfaces even by accident.
  *
- * Swapping the live feed for [dev.madina.tickr.feature.portfolio.data.repository.SimulatedPriceRepository]
- * is a one-line change here and nothing else in the app knows the difference, which is the whole
- * argument for the interface living in `domain`.
+ * Swapping the live feed for a fake is a one-line change here and nothing else in the app knows
+ * the difference, which is the whole argument for the interface living in `domain`.
  */
 val portfolioDataModule: Module =
     module {

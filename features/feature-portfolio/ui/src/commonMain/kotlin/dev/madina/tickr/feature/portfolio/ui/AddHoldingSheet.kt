@@ -44,6 +44,19 @@ import dev.madina.tickr.core.ui.theme.Spacing
 import dev.madina.tickr.core.ui.theme.SurfaceElevated
 import dev.madina.tickr.core.ui.theme.TextSecondary
 import dev.madina.tickr.feature.portfolio.ui.model.AssetUi
+import org.jetbrains.compose.resources.stringResource
+import tickr.features.feature_portfolio.ui.generated.resources.Res
+import tickr.features.feature_portfolio.ui.generated.resources.add_change_asset
+import tickr.features.feature_portfolio.ui.generated.resources.add_confirm
+import tickr.features.feature_portfolio.ui.generated.resources.add_cost_explainer
+import tickr.features.feature_portfolio.ui.generated.resources.add_cost_label
+import tickr.features.feature_portfolio.ui.generated.resources.add_cost_placeholder
+import tickr.features.feature_portfolio.ui.generated.resources.add_no_matches
+import tickr.features.feature_portfolio.ui.generated.resources.add_quantity_label
+import tickr.features.feature_portfolio.ui.generated.resources.add_search_label
+import tickr.features.feature_portfolio.ui.generated.resources.add_search_placeholder
+import tickr.features.feature_portfolio.ui.generated.resources.add_subtitle
+import tickr.features.feature_portfolio.ui.generated.resources.add_title
 
 /**
  * Adds a position, and only one the exchange actually quotes.
@@ -93,14 +106,14 @@ internal fun AddHoldingSheet(
             verticalArrangement = Arrangement.spacedBy(Spacing.Medium),
         ) {
             Text(
-                text = "Add an asset",
+                text = stringResource(Res.string.add_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
 
             if (selected == null) {
                 Text(
-                    text = "Search anything Coinbase quotes in USD.",
+                    text = stringResource(Res.string.add_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                 )
@@ -108,8 +121,8 @@ internal fun AddHoldingSheet(
                 OutlinedTextField(
                     value = state.assetQuery,
                     onValueChange = { onAction(PortfolioAction.AssetQueryChanged(it)) },
-                    label = { Text("Search") },
-                    placeholder = { Text("bitcoin") },
+                    label = { Text(stringResource(Res.string.add_search_label)) },
+                    placeholder = { Text(stringResource(Res.string.add_search_placeholder)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -117,7 +130,7 @@ internal fun AddHoldingSheet(
                 when {
                     state.catalogError != null ->
                         Text(
-                            text = state.catalogError,
+                            text = stringResource(state.catalogError.resource),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Negative,
                         )
@@ -132,7 +145,7 @@ internal fun AddHoldingSheet(
 
                     state.assetResults.isEmpty() ->
                         Text(
-                            text = "Nothing matches that.",
+                            text = stringResource(Res.string.add_no_matches),
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary,
                         )
@@ -159,9 +172,7 @@ internal fun AddHoldingSheet(
                 // The obvious question when every other number is fetched live is why this one is
                 // typed. Answering it here is cheaper than leaving the user to wonder.
                 Text(
-                    text =
-                        "The price comes from Coinbase. What you paid is the one thing it " +
-                            "cannot know, and it is what turns this into a profit and not just a price.",
+                    text = stringResource(Res.string.add_cost_explainer),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                 )
@@ -170,7 +181,7 @@ internal fun AddHoldingSheet(
                     OutlinedTextField(
                         value = quantity,
                         onValueChange = { quantity = it },
-                        label = { Text("Quantity") },
+                        label = { Text(stringResource(Res.string.add_quantity_label)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
@@ -179,8 +190,8 @@ internal fun AddHoldingSheet(
                     OutlinedTextField(
                         value = averageCost,
                         onValueChange = { averageCost = it },
-                        label = { Text("Paid per unit") },
-                        placeholder = { Text("USD") },
+                        label = { Text(stringResource(Res.string.add_cost_label)) },
+                        placeholder = { Text(stringResource(Res.string.add_cost_placeholder)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
@@ -201,7 +212,7 @@ internal fun AddHoldingSheet(
                     enabled = canSubmit,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(text = "Add ${selected.symbol} to portfolio")
+                    Text(text = stringResource(Res.string.add_confirm, selected.symbol))
                 }
             }
         }
@@ -257,7 +268,10 @@ private fun SelectedAsset(asset: AssetUi, onChange: () -> Unit) {
             )
         }
         TextButton(onClick = onChange) {
-            Text(text = "Change", style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = stringResource(Res.string.add_change_asset),
+                style = MaterialTheme.typography.labelLarge,
+            )
         }
     }
 }

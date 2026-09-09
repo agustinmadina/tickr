@@ -3,6 +3,7 @@ package dev.madina.tickr.feature.portfolio.di
 import dev.madina.tickr.core.common.DispatcherProvider
 import dev.madina.tickr.feature.portfolio.data.di.portfolioDataModule
 import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
+import dev.madina.tickr.feature.portfolio.domain.usecase.ObserveFeedStatusUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.SearchAssetsUseCase
@@ -22,6 +23,7 @@ val portfolioModule: Module =
         includes(portfolioDataModule, portfolioUiModule)
 
         factory { ObservePortfolioUseCase(get(), get(), get<DispatcherProvider>().default) }
+        factory { ObserveFeedStatusUseCase(get(), get<DispatcherProvider>().default) }
         factory { AddHoldingUseCase(get(), get<DispatcherProvider>().default) }
         factory { RemoveHoldingUseCase(get(), get<DispatcherProvider>().default) }
         factory { SearchAssetsUseCase(get(), get<DispatcherProvider>().default) }

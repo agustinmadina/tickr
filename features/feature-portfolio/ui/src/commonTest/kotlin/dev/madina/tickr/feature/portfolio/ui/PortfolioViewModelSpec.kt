@@ -1,12 +1,14 @@
 package dev.madina.tickr.feature.portfolio.ui
 
 import dev.madina.tickr.feature.portfolio.domain.model.Asset
+import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
 import dev.madina.tickr.feature.portfolio.domain.model.Holding
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
 import dev.madina.tickr.feature.portfolio.domain.repository.AssetCatalogRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.HoldingsRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
 import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
+import dev.madina.tickr.feature.portfolio.domain.usecase.ObserveFeedStatusUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.SearchAssetsUseCase
@@ -230,20 +232,55 @@ internal class PortfolioViewModelSpec :
                     }
                 }
             }
+
+            When("the price feed drops") {
+                Then("the screen is told, so blank values read as offline rather than broken") {
+                    mviTest {
+                        // Prices are not persisted, so offline every value is blank. Without this
+                        // the screen looks broken instead of disconnected.
+                        val prices = FakePriceRepository()
+                        val viewModel = viewModel(prices)
+                        viewModel.state.first { !it.isLoading }
+
+                        viewModel.state.value.isFeedDown shouldBe false
+
+                        prices.status.value = FeedStatus.Disconnected
+
+                        viewModel.state.first { it.isFeedDown }.isFeedDown shouldBe true
+                    }
+                }
+
+                Then("it is told again when the feed comes back") {
+                    mviTest {
+                        val prices = FakePriceRepository()
+                        val viewModel = viewModel(prices)
+                        viewModel.state.first { !it.isLoading }
+
+                        prices.status.value = FeedStatus.Disconnected
+                        viewModel.state.first { it.isFeedDown }
+
+                        prices.status.value = FeedStatus.Live
+
+                        viewModel.state.first { !it.isFeedDown }.isFeedDown shouldBe false
+                    }
+                }
+            }
         }
     })
 
 /** BTC alone, 2 units at 150. Adding ETH takes the total past this, so the old value must go. */
 private const val SingleHoldingTotal = 300f
 
-private fun viewModel(): PortfolioViewModel {
+private fun viewModel(
+    prices: FakePriceRepository = FakePriceRepository(),
+): PortfolioViewModel {
     val dispatcher = UnconfinedTestDispatcher()
     val holdings = FakeHoldingsRepository()
-    val prices = FakePriceRepository()
     val catalog = FakeAssetCatalogRepository()
 
     return PortfolioViewModel(
         observePortfolio = ObservePortfolioUseCase(holdings, prices, dispatcher),
+        observeFeedStatus = ObserveFeedStatusUseCase(prices, dispatcher),
         addHolding = AddHoldingUseCase(holdings, dispatcher),
         removeHolding = RemoveHoldingUseCase(holdings, dispatcher),
         searchAssets = SearchAssetsUseCase(catalog, dispatcher),
@@ -290,6 +327,10 @@ private class FakePriceRepository : PriceRepository {
         MutableStateFlow(
             symbols.associateWith { PriceTick(symbol = it, price = 150.0, changePercent24h = 0.0) },
         )
+
+    val status = MutableStateFlow(FeedStatus.Live)
+
+    override fun observeStatus(): Flow<FeedStatus> = status
 }
 
 private class FakeAssetCatalogRepository : AssetCatalogRepository {

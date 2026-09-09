@@ -1,5 +1,6 @@
 package dev.madina.tickr.feature.portfolio.ui
 
+import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
 import dev.madina.tickr.feature.portfolio.ui.model.AssetUi
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
 import kotlinx.collections.immutable.ImmutableList
@@ -9,7 +10,7 @@ import kotlinx.collections.immutable.persistentListOf
  * Which screen is showing is part of the state, not of the composition. Keeping it here means the
  * back stack survives a configuration change, and the same state drives all three platforms.
  */
-sealed interface PortfolioDestination {
+internal sealed interface PortfolioDestination {
     data object Overview : PortfolioDestination
 
     data class Detail(
@@ -17,7 +18,7 @@ sealed interface PortfolioDestination {
     ) : PortfolioDestination
 }
 
-data class PortfolioUiState(
+internal data class PortfolioUiState(
     val holdings: ImmutableList<HoldingUi> = persistentListOf(),
     val totalValue: Double = 0.0,
     val totalProfit: Double = 0.0,
@@ -37,6 +38,7 @@ data class PortfolioUiState(
     val overviewScrubIndex: Int? = null,
     val detailScrubIndex: Int? = null,
     val isLoading: Boolean = true,
+    val feedStatus: FeedStatus = FeedStatus.Connecting,
     val isPartiallyPriced: Boolean = false,
     val destination: PortfolioDestination = PortfolioDestination.Overview,
     val isAddSheetVisible: Boolean = false,
@@ -49,12 +51,30 @@ data class PortfolioUiState(
     val assetResults: ImmutableList<AssetUi> = persistentListOf(),
     val selectedAsset: AssetUi? = null,
     val isCatalogLoading: Boolean = false,
-    val catalogError: String? = null,
-    val errorMessage: String? = null,
+    val catalogError: UiMessage? = null,
+    val errorMessage: UiMessage? = null,
 ) {
     val isEmpty: Boolean = !isLoading && holdings.isEmpty()
 
     val isScrubbing: Boolean = overviewScrubIndex != null
+
+    /**
+     * Worth telling the user about only once something is actually missing.
+     *
+     * A banner during the first second of every launch would be noise; a screen full of blanks
+     * with no explanation is worse.
+     */
+    val isFeedDown: Boolean = feedStatus == FeedStatus.Disconnected
+
+    /**
+     * Not one holding has a price yet, which is what a cold start with no network looks like.
+     *
+     * Distinct from [isPartiallyPriced], which is true whenever *any* holding is missing a quote.
+     * The totals sum an unpriced holding as zero so a partial total still means something, but with
+     * nothing priced at all that sum is not a small total, it is no total: rendering it as $0.00
+     * tells the reader their portfolio is worthless.
+     */
+    val isUnpriced: Boolean = holdings.isNotEmpty() && holdings.none { it.isPriced }
 
     /**
      * How the total has moved since the app opened, which is the window the header chart covers.
