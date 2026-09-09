@@ -1,11 +1,12 @@
 package dev.madina.tickr.core.ui.component
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -36,11 +37,12 @@ fun Sparkline(
         return
     }
 
-    val appear by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = AppearDurationMillis),
-        label = "sparkline-appear",
-    )
+    // Started at zero and animated up. animateFloatAsState(1f) remembers its Animatable at the
+    // initial target, so it sat at 1f from the first frame and the reveal never ran.
+    val appear = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        appear.animateTo(1f, tween(durationMillis = AppearDurationMillis))
+    }
 
     val minimum = points.min()
     val maximum = points.max()
@@ -52,7 +54,7 @@ fun Sparkline(
         fun yOf(value: Float): Float {
             // A flat series has no range to normalise against, so it is pinned to the middle.
             val normalised = range?.let { (value - minimum) / it } ?: MidPoint
-            val usableHeight = size.height * appear
+            val usableHeight = size.height * appear.value
             return size.height - (normalised * usableHeight)
         }
 

@@ -2,6 +2,7 @@ package dev.madina.tickr.core.domain.usecase
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Base class for a one-shot piece of business logic.
@@ -17,7 +18,10 @@ abstract class UseCase<in PARAMS, out RESULT>(
 
     suspend operator fun invoke(parameters: PARAMS): Result<RESULT> =
         withContext(coroutineDispatcher) {
+            // runCatching catches Throwable, cancellation included, which would turn a caller
+            // walking away into an ordinary failure the UI then reports as an error.
             runCatching { execute(parameters) }
+                .onFailure { if (it is CancellationException) throw it }
         }
 }
 

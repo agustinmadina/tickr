@@ -9,10 +9,11 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.isActive
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.min
@@ -32,23 +33,32 @@ internal class CoinbasePriceRepository(
     private val httpClient: HttpClient,
     private val logger: Logger = Logger.withTag("CoinbasePriceRepository"),
 ) : PriceRepository {
+    /**
+     * Accumulated rather than emitted per tick, so a subscriber receives every price known so far
+     * instead of one asset at a time.
+     *
+     * It belongs to the repository and not to the flow because adding or removing a holding changes
+     * the symbol set, and the caller's `flatMapLatest` tears the flow down when it does. A per-flow
+     * accumulator started empty every time, so adding one asset dropped every other row back to
+     * unpriced until it ticked again.
+     */
+    private val cache = MutableStateFlow<Map<String, PriceTick>>(emptyMap())
+
     override fun observePrices(symbols: Set<String>): Flow<Map<String, PriceTick>> =
         channelFlow {
-            if (symbols.isEmpty()) {
-                send(emptyMap())
-                return@channelFlow
-            }
+            // Emitted before the socket is even attempted. This flow is combined with the holdings
+            // upstream, and combine produces nothing until both sides have emitted once, so waiting
+            // for the first frame left the whole screen on its loading skeleton, for ever when the
+            // feed was unreachable. An empty map is the unpriced state the model already represents.
+            send(cache.value.filterKeys { it in symbols })
+            if (symbols.isEmpty()) return@channelFlow
 
             val bySymbol = symbols.associateBy { productIdFor(it) }
-            // Accumulated rather than emitted per tick, so a subscriber always receives every price
-            // known so far instead of one asset at a time.
-            val latest = mutableMapOf<String, PriceTick>()
             var failures = 0
 
             while (isActive) {
                 try {
                     httpClient.webSocket(FeedUrl) {
-                        failures = 0
                         send(Frame.Text(subscribeMessage(bySymbol.keys)))
 
                         for (frame in incoming) {
@@ -58,8 +68,12 @@ internal class CoinbasePriceRepository(
 
                             val symbol = bySymbol[ticker.productId] ?: continue
                             val tick = ticker.toPriceTick(symbol) ?: continue
-                            latest[symbol] = tick
-                            this@channelFlow.send(latest.toMap())
+                            // Reset here rather than on connect: a socket that is accepted and then
+                            // dropped reset the count every attempt, which turned the capped backoff
+                            // into a reconnect every second for as long as the app was open.
+                            failures = 0
+                            val updated = cache.updateAndGet { it + (symbol to tick) }
+                            this@channelFlow.send(updated.filterKeys { it in symbols })
                         }
                     }
                 } catch (cancellation: CancellationException) {
@@ -90,19 +104,20 @@ internal class CoinbasePriceRepository(
         return PriceTick(
             symbol = symbol,
             price = current,
-            // Without an opening price there is no basis for a daily change, and zero would be a
-            // claim the feed never made.
+            // Null, not zero: without an opening price there is no basis for a daily change, and
+            // zero is a claim the feed never made. It used to return zero anyway, directly under
+            // this comment, which reported the position as precisely flat rather than unknown.
             changePercent24h =
                 if (opening != null && opening > 0) {
                     (current - opening) / opening * Percent
                 } else {
-                    0.0
+                    null
                 },
         )
     }
 }
 
-private fun ProducerScope<*>.subscribeMessage(productIds: Set<String>): String {
+private fun subscribeMessage(productIds: Set<String>): String {
     val ids = productIds.joinToString(",") { "\"$it\"" }
     return """{"type":"subscribe","product_ids":[$ids],"channels":["ticker"]}"""
 }

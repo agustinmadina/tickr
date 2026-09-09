@@ -3,10 +3,12 @@ package dev.madina.tickr.core.ui.component
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -39,15 +41,25 @@ fun AllocationBar(
     modifier: Modifier = Modifier,
 ) {
     val total = segments.sumOf { it.weight }
-    if (total <= 0.0) return
+    // Holds its space while every holding is still unpriced, which is the state at launch. Returning
+    // outright emitted no node, so the whole list jumped down the moment the first quote landed.
+    if (total <= 0.0) {
+        Spacer(modifier.fillMaxWidth().height(Sizing.AllocationBarHeight))
+        return
+    }
 
     val animatedWeights =
         segments.map { segment ->
-            animateFloatAsState(
-                targetValue = (segment.weight / total).toFloat().coerceAtLeast(MinimumWeight),
-                animationSpec = tween(durationMillis = ResizeDurationMillis),
-                label = "allocation-${segment.key}",
-            ).value
+            // Keyed by the segment, not by its position. Without this, removing a holding retargets
+            // the animation that belonged to the row above it, so for the length of the transition
+            // the bar showed the new colours at the old proportions.
+            key(segment.key) {
+                animateFloatAsState(
+                    targetValue = (segment.weight / total).toFloat().coerceAtLeast(MinimumWeight),
+                    animationSpec = tween(durationMillis = ResizeDurationMillis),
+                    label = "allocation-${segment.key}",
+                ).value
+            }
         }
 
     val animatedTotal = animatedWeights.sum().takeIf { it > 0f } ?: return

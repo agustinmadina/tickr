@@ -31,9 +31,9 @@ data class ValuedHolding(
      * portfolio total.
      */
     val valueYesterday: Double? =
-        price?.let { tick ->
-            val factor = 1 + (tick.changePercent24h / PERCENT)
-            if (factor <= 0) null else holding.quantity * (tick.price / factor)
+        price?.changePercent24h?.let { change ->
+            val factor = 1 + (change / PERCENT)
+            if (factor <= 0) null else holding.quantity * (price.price / factor)
         }
 
     val dayChange: Double? =
@@ -48,12 +48,30 @@ data class Portfolio(
 
     val totalCost: Double = holdings.sumOf { it.cost }
 
-    val totalProfit: Double = totalValue - totalCost
+    /**
+     * The cost of the holdings [totalValue] actually covers.
+     *
+     * Measuring a partial value against the full cost basis reported a loss the size of every
+     * position still waiting for its first quote, so the headline read tens of percent down for the
+     * first seconds after launch and then snapped to the real figure.
+     */
+    private val pricedCost: Double = holdings.sumOf { if (it.value == null) 0.0 else it.cost }
+
+    val totalProfit: Double = totalValue - pricedCost
 
     val totalReturnPercent: Double? =
-        if (totalCost == 0.0) null else totalProfit / totalCost * PERCENT
+        if (pricedCost == 0.0) null else totalProfit / pricedCost * PERCENT
 
-    private val totalValueYesterday: Double = holdings.sumOf { it.valueYesterday ?: 0.0 }
+    /**
+     * Yesterday's value, counting only the holdings that also have a value today.
+     *
+     * Summing `valueYesterday ?: 0.0` against the full [totalValue] treated "yesterday unknown" as
+     * "yesterday worthless", so a holding whose opening price the feed never sent contributed its
+     * entire market value to today's gain. That is the defect [ValuedHolding.valueYesterday] returns
+     * null to avoid, undone one line later.
+     */
+    private val comparableValueYesterday: Double =
+        holdings.sumOf { if (it.dayChange == null) 0.0 else it.valueYesterday ?: 0.0 }
 
     /**
      * How much the whole portfolio moved today.
@@ -62,10 +80,14 @@ data class Portfolio(
      * with the per-row percentages. Return against cost answers a different question, over a
      * different span, and depends on what the user typed in rather than on the market.
      */
-    val dayChange: Double = totalValue - totalValueYesterday
+    val dayChange: Double = holdings.sumOf { it.dayChange ?: 0.0 }
 
     val dayChangePercent: Double? =
-        if (totalValueYesterday == 0.0) null else dayChange / totalValueYesterday * PERCENT
+        if (comparableValueYesterday == 0.0) {
+            null
+        } else {
+            dayChange / comparableValueYesterday * PERCENT
+        }
 
     /** True while any holding is still waiting for its first quote, so the UI can say the total is partial. */
     val isPartiallyPriced: Boolean = holdings.any { it.price == null }

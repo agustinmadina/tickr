@@ -32,6 +32,15 @@ internal class PortfolioViewModel(
         observePortfolio(Unit)
             .onEach { portfolio ->
                 updateState { previous ->
+                    // Adding or removing an asset also breaks comparability: the total jumps by the
+                    // size of the position, and the chart drew that as a cliff, as though the market
+                    // had moved. A different set of holdings is a different series, so it starts
+                    // again.
+                    val holdingsChanged =
+                        previous.holdings.isNotEmpty() &&
+                            portfolio.holdings.map { it.holding.symbol }.toSet() !=
+                            previous.holdings.map { it.symbol }.toSet()
+
                     previous.copy(
                         // The previous holdings carry the price history, so the reducer derives the
                         // new samples from the old state rather than from a field, keeping it pure.
@@ -46,22 +55,19 @@ internal class PortfolioViewModel(
                         // vertical climb out of nothing while the feed filled in. A point on this
                         // series has to be comparable with the ones beside it, which means it must
                         // cover the whole portfolio.
-                        //
-                        // Adding or removing an asset also breaks comparability: the total jumps by
-                        // the size of the position, and the chart drew that as a cliff, as though
-                        // the market had moved. A different set of holdings is a different series,
-                        // so it starts again.
                         totalHistory =
                             when {
-                                portfolio.holdings.map { it.holding.symbol }.toSet() !=
-                                    previous.holdings.map { it.symbol }.toSet() &&
-                                    previous.holdings.isNotEmpty() -> persistentListOf()
+                                holdingsChanged -> persistentListOf()
 
                                 !portfolio.isPartiallyPriced && portfolio.totalValue > 0 ->
                                     previous.totalHistory.append(portfolio.totalValue)
 
                                 else -> previous.totalHistory
                             },
+                        // Emptying the series takes the chart out of composition, so it never gets
+                        // to report the pointer leaving. A stale index left the header stuck on
+                        // "at this point" with no marker under it to explain why.
+                        overviewScrubIndex = if (holdingsChanged) null else previous.overviewScrubIndex,
                         isPartiallyPriced = portfolio.isPartiallyPriced,
                         isLoading = false,
                     )
@@ -201,8 +207,18 @@ internal class PortfolioViewModel(
             return
         }
 
-        val quantity = action.quantity.trim().toDoubleOrNull()
-        val averageCost = action.averageCost.trim().toDoubleOrNull()
+        // takeIf(isFinite) rather than a bare parse: "NaN" and "Infinity" are both valid to
+        // toDoubleOrNull, and the sheet is not the only caller that has to hold this line.
+        val quantity =
+            action.quantity
+                .trim()
+                .toDoubleOrNull()
+                ?.takeIf { it.isFinite() }
+        val averageCost =
+            action.averageCost
+                .trim()
+                .toDoubleOrNull()
+                ?.takeIf { it.isFinite() }
         if (quantity == null || averageCost == null) {
             emitEffect(PortfolioEffect.ShowMessage("Quantity and average cost must be numbers"))
             return

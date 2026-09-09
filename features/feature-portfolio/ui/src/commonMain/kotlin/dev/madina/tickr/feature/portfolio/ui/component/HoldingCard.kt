@@ -86,7 +86,7 @@ internal fun HoldingCard(
 
             Sparkline(
                 points = holding.history,
-                color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
+                color = if (holding.sessionChange >= 0) Positive else Negative,
                 modifier =
                     Modifier
                         .weight(1f)

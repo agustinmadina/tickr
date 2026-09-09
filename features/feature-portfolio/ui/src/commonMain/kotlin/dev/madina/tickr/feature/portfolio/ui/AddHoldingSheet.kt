@@ -69,10 +69,14 @@ internal fun AddHoldingSheet(
     var averageCost by rememberSaveable { mutableStateOf("") }
 
     val selected = state.selectedAsset
+    // isFinite, not just parseable: Kotlin reads "NaN" and "Infinity" as valid doubles, and a long
+    // enough digit string overflows to Infinity. KeyboardType.Decimal keeps them off an Android soft
+    // keyboard and constrains nothing at all in a browser, which is the target this project exists
+    // for. NaN then formats as $0.00 and Infinity as a nineteen-digit total.
     val canSubmit =
         selected != null &&
-            quantity.toDoubleOrNull()?.let { it > 0 } == true &&
-            averageCost.toDoubleOrNull() != null
+            quantity.toDoubleOrNull()?.let { it.isFinite() && it > 0 } == true &&
+            averageCost.toDoubleOrNull()?.isFinite() == true
 
     ModalBottomSheet(
         onDismissRequest = { onAction(PortfolioAction.AddDismissed) },

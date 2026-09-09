@@ -1,6 +1,6 @@
 package dev.madina.tickr.core.ui.component
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -9,7 +9,10 @@ import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellati
 import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -27,9 +30,9 @@ import kotlin.math.roundToInt
  * A line chart the user can run a finger or a cursor along, reporting which sample they are on.
  *
  * Input is handled twice on purpose, and this is the whole point of the component on a
- * multiplatform project: [detectHorizontalDragGestures] covers touch, and a pointer loop watching
- * `Move` and `Exit` covers a mouse hovering with no button held. One is useless on a phone and the
- * other is useless in a browser, and neither needs a platform-specific source set.
+ * multiplatform project: a horizontal drag gesture covers touch, and a pointer loop watching `Move`
+ * with nothing pressed covers a mouse hovering with no button held. One is useless on a phone and
+ * the other is useless in a browser, and neither needs a platform-specific source set.
  *
  * The drag detector is horizontal only, which is what lets this live inside a vertically scrolling
  * list: Compose gives a horizontal drag to the chart and a vertical one to the list, so scrolling
@@ -49,11 +52,18 @@ fun InteractiveLineChart(
         return
     }
 
-    val appear by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = AppearDurationMillis),
-        label = "chart-appear",
-    )
+    // An Animatable started at zero, not animateFloatAsState(1f): that remembers its Animatable at
+    // the initial target, so it began at 1f and animated 1f to 1f. The reveal was dead code.
+    val appear = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        appear.animateTo(1f, tween(durationMillis = AppearDurationMillis))
+    }
+
+    // Read through a State so the gesture handlers below can key on Unit. Keying them on the sample
+    // count restarted both on every tick, which cancelled any drag in flight, skipped its cleanup,
+    // and left the restarted handler waiting on a down that a finger already on the glass never
+    // sends again.
+    val currentPoints by rememberUpdatedState(points)
 
     val minimum = points.min()
     val maximum = points.max()
@@ -62,14 +72,14 @@ fun InteractiveLineChart(
     Canvas(
         modifier =
             modifier
-                .pointerInput(points.size) {
+                .pointerInput(Unit) {
                     awaitEachGesture {
                         // Report on the touch down itself, before any movement. A drag detector only
                         // fires once the finger has travelled past the touch slop, so the marker
                         // appeared a few millimetres late and the chart read as unresponsive: you had
                         // to already know it was interactive to discover that it was.
                         val down = awaitFirstDown(requireUnconsumed = false)
-                        onScrub(indexAt(down.position.x, size.width, points.size))
+                        onScrub(indexAt(down.position.x, size.width, currentPoints.size))
 
                         // The down is deliberately not consumed, so a vertical swipe still reaches the
                         // list underneath. Only once the gesture proves itself horizontal do we claim
@@ -83,21 +93,26 @@ fun InteractiveLineChart(
                             onScrub(null)
                         } else {
                             horizontalDrag(slopChange.id) { change ->
-                                onScrub(indexAt(change.position.x, size.width, points.size))
+                                onScrub(indexAt(change.position.x, size.width, currentPoints.size))
                                 change.consume()
                             }
                             onScrub(null)
                         }
                     }
-                }.pointerInput(points.size) {
+                }.pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitPointerEvent()
                             when (event.type) {
+                                // Hover only. A finger dragging also emits Move, and handling those
+                                // here re-set the marker immediately after the drag detector above
+                                // had dismissed it, so a vertical scroll starting on the chart left
+                                // the scrubber stuck on screen and the headline reading AT THIS POINT.
                                 PointerEventType.Move -> {
+                                    if (event.changes.any { it.pressed }) continue
                                     val position = event.changes.lastOrNull()?.position ?: continue
                                     // Not consumed: a hover must not swallow events the list needs.
-                                    onScrub(indexAt(position.x, size.width, points.size))
+                                    onScrub(indexAt(position.x, size.width, currentPoints.size))
                                 }
 
                                 PointerEventType.Exit -> onScrub(null)
@@ -112,7 +127,7 @@ fun InteractiveLineChart(
             val normalised = range?.let { (value - minimum) / it } ?: MidPoint
             // Inset from both edges so the highest and lowest points are not clipped by the bounds.
             val usable = size.height * (1f - VerticalInset * 2)
-            return size.height - (size.height * VerticalInset) - (normalised * usable * appear)
+            return size.height - (size.height * VerticalInset) - (normalised * usable * appear.value)
         }
 
         val line =

@@ -47,22 +47,39 @@ internal class StoredHoldingsRepository(
             current.filterNot { it.symbol == symbol }
         }
 
-    private suspend fun mutate(transform: (List<Holding>) -> List<Holding>) =
+    private suspend fun mutate(transform: (List<Holding>) -> List<Holding>) {
         writeMutex.withLock {
-            val updated = transform(holdings.value)
+            val previous = holdings.value
+            val updated = transform(previous)
             holdings.value = updated
-            persist(updated)
+            try {
+                persist(updated)
+            } catch (failure: Exception) {
+                // Rolled back and rethrown, so a store that refuses the write surfaces as a message
+                // instead of leaving a row on screen that is gone on the next launch.
+                holdings.value = previous
+                logger.e(failure) { "Could not save holdings" }
+                throw failure
+            }
         }
+    }
 
     private fun persist(updated: List<Holding>) {
         val entities = updated.map { HoldingEntity(it.symbol, it.name, it.quantity, it.averageCost) }
-        runCatching { json.encodeToString(entities) }
-            .onSuccess { encoded -> settings.putString(HoldingsKey, encoded) }
-            .onFailure { failure -> logger.e(failure) { "Could not save holdings" } }
+        settings.putString(HoldingsKey, json.encodeToString(entities))
     }
 
     private fun load(): List<Holding> {
-        val stored = settings.getStringOrNull(HoldingsKey) ?: return SampleHoldings
+        // A store that cannot be read at all, rather than one that is merely empty, is treated as a
+        // first run. Reading it used to be outside any guard, in a property initializer, so a
+        // browser with storage blocked took the app down while Koin was still resolving.
+        val stored =
+            runCatching { settings.getStringOrNull(HoldingsKey) }
+                .getOrElse { failure ->
+                    logger.e(failure) { "Holdings store is unreadable, seeding the sample portfolio" }
+                    null
+                } ?: return SampleHoldings
+
         return runCatching { json.decodeFromString<List<HoldingEntity>>(stored) }
             .map { entities -> entities.map { Holding(it.symbol, it.name, it.quantity, it.averageCost) } }
             .getOrElse { failure ->
