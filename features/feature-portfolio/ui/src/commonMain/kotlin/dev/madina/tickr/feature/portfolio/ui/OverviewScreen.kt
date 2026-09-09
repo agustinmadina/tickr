@@ -183,16 +183,29 @@ private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
     ) {
-        Text(
-            text = "by Agustin Madina",
-            style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
+        Row(
             modifier =
                 Modifier
                     .clip(RoundedCornerShape(Radius.Small))
                     .clickable(onClick = onClick)
                     .padding(horizontal = Spacing.Small, vertical = Spacing.ExtraSmall),
-        )
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "by ",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary,
+            )
+            // The name carries the accent colour rather than the muted one. Small grey text in a
+            // corner reads as a watermark and nobody taps it, while in this app blue already means
+            // tappable, from the add row to the links in the sheet. So it needs no icon, border or
+            // extra element to be understood as one.
+            Text(
+                text = "Agustin Madina",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
     }
 }
 
@@ -248,8 +261,14 @@ private fun PortfolioHeader(state: PortfolioUiState) {
 
         val scrubbedChange = state.scrubbedChange
         if (scrubbedChange != null) {
+            // Money and percent, worded exactly as the detail screen does while scrubbing: the two
+            // charts behave the same way, so reading one should teach you the other.
+            val percentSuffix =
+                state.scrubbedChangePercent
+                    ?.let { " (${it.formatPercent()})" }
+                    .orEmpty()
             Text(
-                text = "${scrubbedChange.formatSignedUsd()} since the start of this chart",
+                text = "${scrubbedChange.formatSignedUsd()}$percentSuffix since this chart started",
                 style = MaterialTheme.typography.titleMedium,
                 color = if (scrubbedChange >= 0) Positive else Negative,
             )

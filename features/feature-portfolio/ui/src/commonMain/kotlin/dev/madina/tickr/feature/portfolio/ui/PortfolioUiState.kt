@@ -84,8 +84,17 @@ data class PortfolioUiState(
             return (at - first).toDouble()
         }
 
+    /** The same move as a percentage, which is the shape people compare movements in. */
+    val scrubbedChangePercent: Double?
+        get() {
+            val first = totalHistory.firstOrNull()?.toDouble()?.takeIf { it != 0.0 } ?: return null
+            return scrubbedChange?.div(first)?.times(PERCENT)
+        }
+
     val selectedHolding: HoldingUi?
         get() =
             (destination as? PortfolioDestination.Detail)
                 ?.let { detail -> holdings.firstOrNull { it.symbol == detail.symbol } }
 }
+
+private const val PERCENT = 100

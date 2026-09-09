@@ -109,11 +109,31 @@ internal fun HoldingDetailScreen(
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
-                Text(
-                    text = "at this point",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = TextSecondary,
-                )
+                // "at this point" on its own said nothing: consecutive samples differ by cents, so
+                // the headline looked static even though it was tracking the finger. Reporting the
+                // move against the start of the series, in money and percent, is what makes a point
+                // worth reading, and it matches what the overview shows while scrubbing.
+                val start = holding.history.firstOrNull()?.toDouble()
+                val changeSinceStart = start?.let { scrubbedPrice - it }
+                val percentSinceStart =
+                    start
+                        ?.takeIf { it != 0.0 }
+                        ?.let { changeSinceStart?.div(it)?.times(Percent) }
+
+                if (changeSinceStart == null) {
+                    Text(
+                        text = "at this point",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextSecondary,
+                    )
+                } else {
+                    val percentSuffix = percentSinceStart?.let { " (${it.formatPercent()})" }.orEmpty()
+                    Text(
+                        text = "${changeSinceStart.formatSignedUsd()}$percentSuffix since this chart started",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (changeSinceStart >= 0) Positive else Negative,
+                    )
+                }
             } else {
                 holding.price?.let { price ->
                     AnimatedAmount(
@@ -201,3 +221,4 @@ private fun DetailRow(
 
 /** ASCII on purpose: an em dash is another glyph the web build's bundled font may not carry. */
 private const val Pending = "--"
+private const val Percent = 100

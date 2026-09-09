@@ -11,8 +11,10 @@ import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.SearchAssetsUseCase
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -108,6 +110,36 @@ internal class PortfolioViewModelSpec :
 
                         viewModel.state.value.scrubIndex
                             .shouldBeNull()
+                    }
+                }
+            }
+        }
+
+        Given("the detail screen open on an asset") {
+            When("the user points at its chart") {
+                Then("the selected holding has a series to read a price from") {
+                    runTest {
+                        val viewModel = viewModel()
+                        viewModel.state.first { it.holdings.isNotEmpty() }
+                        viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
+
+                        viewModel.onAction(PortfolioAction.Scrubbed(0))
+
+                        val state = viewModel.state.value
+                        state.selectedHolding.shouldNotBeNull()
+                        state.selectedHolding!!.history.shouldNotBeEmpty()
+                    }
+                }
+
+                Then("the scrub index survives, so the detail can render the point") {
+                    runTest {
+                        val viewModel = viewModel()
+                        viewModel.state.first { it.holdings.isNotEmpty() }
+                        viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
+
+                        viewModel.onAction(PortfolioAction.Scrubbed(0))
+
+                        viewModel.state.value.scrubIndex shouldBe 0
                     }
                 }
             }
