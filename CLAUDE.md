@@ -15,8 +15,11 @@ project exists. A change that builds on Android but breaks wasmJs is a broken ch
 
 ```
 core/
-  core-ui/                  theme, formatters, shared composables. No business concepts.
-  core-network/             Ktor client + WebSocket plumbing. No business concepts.
+  core-common/              DispatcherProvider. No Dispatchers.IO: JVM only, breaks iOS and wasm.
+  core-domain/              UseCase and FlowUseCase base classes.
+  core-network/             Ktor client + WebSocket plumbing, engine per platform. No business concepts.
+  core-storage/             key-value storage behind expect/actual. No business concepts.
+  core-ui/                  theme, design tokens, BaseViewModel, shared composables.
 features/
   feature-portfolio/
     domain/                 models, repository interfaces, use cases. Pure Kotlin.
@@ -42,9 +45,9 @@ so a violation fails to compile rather than being caught in review.
     └──→   di   ←──┘
 ```
 
-- **domain**: no framework dependencies. No Koin, no Ktor, no SQLDelight, no Compose, no `android.*`
+- **domain**: no framework dependencies. No Koin, no Ktor, no storage, no Compose, no `android.*`
   or `platform.*`, no `@Serializable`. Kotlin stdlib and coroutines only.
-- **data**: depends on domain plus `core-network`. No Compose.
+- **data**: depends on domain plus `core-network` and `core-storage`. No Compose.
 - **ui**: depends on domain plus `core-ui`. Never on data.
 - **di**: depends on all three and binds implementations to interfaces.
 - `core/` stays domain-agnostic: a business type (`Holding`, `Money`, `PriceTick`) appearing there
@@ -57,7 +60,7 @@ so a violation fails to compile rather than being caught in review.
 | UI | Compose Multiplatform, Material3 only |
 | Async | Coroutines and Flow. `Dispatchers.Default` or injected, never `Dispatchers.IO` in commonMain |
 | Networking | Ktor client; WebSocket for the live price feed |
-| Persistence | SQLDelight on Android and iOS, browser storage on web, behind one `expect` interface |
+| Persistence | multiplatform-settings behind one `expect`/`actual`: SharedPreferences, NSUserDefaults, localStorage. Not SQLDelight, which has no wasm driver |
 | DI | Koin, constructor injection |
 | Tests | Kotest BehaviorSpec |
 

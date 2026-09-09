@@ -45,6 +45,9 @@ kotlin {
 
 dependencies {
     implementation(project(":shared"))
+    // Directly, not transitively: the Application hands Android's Context to the storage layer,
+    // which is the one thing common code cannot do for itself.
+    implementation(project(":core:core-storage"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
 }

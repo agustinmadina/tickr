@@ -1,9 +1,11 @@
 package dev.madina.tickr.feature.portfolio.data.di
 
+import dev.madina.tickr.core.network.TickrJson
 import dev.madina.tickr.core.network.createHttpClient
+import dev.madina.tickr.core.storage.createSettings
 import dev.madina.tickr.feature.portfolio.data.repository.CoinbaseAssetCatalogRepository
 import dev.madina.tickr.feature.portfolio.data.repository.CoinbasePriceRepository
-import dev.madina.tickr.feature.portfolio.data.repository.InMemoryHoldingsRepository
+import dev.madina.tickr.feature.portfolio.data.repository.StoredHoldingsRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.AssetCatalogRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.HoldingsRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
@@ -22,7 +24,12 @@ import org.koin.dsl.module
 val portfolioDataModule: Module =
     module {
         single<HttpClient> { createHttpClient() }
-        single<HoldingsRepository> { InMemoryHoldingsRepository() }
+        single<HoldingsRepository> {
+            StoredHoldingsRepository(
+                settings = createSettings(name = "tickr.portfolio"),
+                json = TickrJson,
+            )
+        }
         single<PriceRepository> { CoinbasePriceRepository(httpClient = get()) }
         single<AssetCatalogRepository> { CoinbaseAssetCatalogRepository(httpClient = get()) }
     }

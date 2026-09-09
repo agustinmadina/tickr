@@ -38,6 +38,7 @@ include(":shared")
 include(":core:core-common")
 include(":core:core-domain")
 include(":core:core-network")
+include(":core:core-storage")
 include(":core:core-ui")
 
 // Features: one user-facing slice each, split so the build enforces the dependency direction.

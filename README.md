@@ -192,6 +192,12 @@ open iosApp/iosApp.xcodeproj                   # iOS, then run from Xcode
 
 ## Status
 
-The portfolio is held in memory, so it resets when the app restarts. Persistence is the next piece,
-and it is the most interesting `expect`/`actual` left: SQLDelight on Android and iOS, browser
-storage on web, behind one interface.
+The portfolio persists across restarts on all three platforms, so what you add stays added.
+
+**Why not SQLDelight**, which is the usual answer here and the one this README used to promise: it
+has no maintained driver for wasm, and the web target is the point of the project. Adding a
+dependency that works on two platforms out of three would have traded the interesting half of the
+demo for a nicer line in the stack table. A portfolio is also a handful of rows, read whole and
+written whole, with no queries, no joins and no migrations, so a serialised document in each
+platform's own key-value store is the proportionate choice rather than a compromise: SharedPreferences,
+NSUserDefaults, localStorage, behind one `expect`/`actual`.
