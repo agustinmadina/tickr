@@ -55,6 +55,8 @@ internal fun OverviewScreen(
     state: PortfolioUiState,
     onAction: (PortfolioAction) -> Unit,
     modifier: Modifier = Modifier,
+    /** Marks the open row. Only meaningful in the two pane layout, where the detail is visible. */
+    selectedSymbol: String? = null,
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
@@ -105,6 +107,7 @@ internal fun OverviewScreen(
                 HoldingCard(
                     holding = holding,
                     onClick = { onAction(PortfolioAction.HoldingClicked(holding.symbol)) },
+                    isSelected = holding.symbol == selectedSymbol,
                     modifier = Modifier.animateItem(),
                 )
             }

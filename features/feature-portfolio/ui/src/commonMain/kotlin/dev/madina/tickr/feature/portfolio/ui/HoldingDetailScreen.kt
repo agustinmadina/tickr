@@ -51,6 +51,7 @@ internal fun HoldingDetailScreen(
     scrubIndex: Int?,
     onAction: (PortfolioAction) -> Unit,
     modifier: Modifier = Modifier,
+    showBack: Boolean = true,
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(
@@ -61,10 +62,14 @@ internal fun HoldingDetailScreen(
                 .padding(horizontal = Spacing.Large)
                 .padding(WindowInsets.safeDrawing.asPaddingValues()),
         ) {
-            TextButton(onClick = { onAction(PortfolioAction.BackClicked) }) {
-                BackChevron(color = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(Spacing.Small))
-                Text(text = "Back", style = MaterialTheme.typography.labelLarge)
+            if (showBack) {
+                TextButton(onClick = { onAction(PortfolioAction.BackClicked) }) {
+                    BackChevron(color = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(Spacing.Small))
+                    Text(text = "Back", style = MaterialTheme.typography.labelLarge)
+                }
+            } else {
+                Spacer(Modifier.height(Spacing.Large))
             }
 
             // The holding can vanish while its detail is open, if it is removed from another

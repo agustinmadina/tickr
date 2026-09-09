@@ -1,5 +1,7 @@
 package dev.madina.tickr.feature.portfolio.ui.component
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,8 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import dev.madina.tickr.core.ui.component.AnimatedAmount
 import dev.madina.tickr.core.ui.component.LiveDot
 import dev.madina.tickr.core.ui.component.Sparkline
@@ -36,11 +41,18 @@ internal fun HoldingCard(
     holding: HoldingUi,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
 ) {
+    val borderColor by animateColorAsState(
+        targetValue = if (isSelected) holding.accent else Color.Transparent,
+        label = "holding-card-selection",
+    )
+
     Surface(
         modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         color = SurfaceElevated,
         shape = RoundedCornerShape(Radius.Large),
+        border = BorderStroke(SelectionBorderWidth, borderColor),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(Spacing.Large),
@@ -105,6 +117,7 @@ internal fun HoldingCard(
     }
 }
 
+private val SelectionBorderWidth = 1.dp
 private const val SymbolWeight = 1f
 private const val SparklineWeight = 0.9f
 private val SparklineHeight = Sizing.SparklineHeight / 2
