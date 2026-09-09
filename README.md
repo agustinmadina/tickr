@@ -14,12 +14,13 @@ Compose UI that runs on the phones, compiled to WebAssembly. Prices are live, st
 Coinbase over a WebSocket.
 
 <p align="center">
-  <img src="docs/screenshots/live-prices.gif" width="280" alt="Live prices ticking in Tickr">
+  <img src="docs/screenshots/tour.gif" width="290" alt="A tour of Tickr: live prices, a scrubbable chart, the detail screen and the asset catalogue">
 </p>
 
 <p align="center">
-  <em>Not a mockup: those are real Coinbase quotes arriving over a WebSocket, with the totals
-  counting to each new value.</em>
+  <em>Prices ticking in, dragging along the chart to read any moment in the session, opening a
+  position, and searching the live Coinbase catalogue. Nothing here is a mockup: every number
+  arrives over a WebSocket while the recording runs.</em>
 </p>
 
 ### The same screen, built from the same code
@@ -50,8 +51,9 @@ Coinbase over a WebSocket.
 </p>
 
 <p align="center">
-  <em>Past 840dp the same state lays itself out as two panes, on a tablet or in a browser window.
-  One destination in the ViewModel drives both, so there is no second navigation graph.</em>
+  <em>The same app on an iPad. Given a wide enough screen, a tablet or a maximised browser window,
+  the list and the detail sit side by side instead of one covering the other. It is the same code
+  and the same state deciding, so there is no separate tablet layout to keep in sync.</em>
 </p>
 
 ---
