@@ -13,7 +13,10 @@ struct ComposeView: UIViewControllerRepresentable {
 struct ContentView: View {
     var body: some View {
         ComposeView()
-            .ignoresSafeArea(.keyboard) // Compose has its own keyboard handler
+            // All edges, not just the keyboard. SwiftUI insetting the view and Compose then adding
+            // WindowInsets.safeDrawing counted the notch twice, leaving the header a notch lower on
+            // iOS than on Android from the same code.
+            .ignoresSafeArea()
             .preferredColorScheme(.dark)
     }
 }
