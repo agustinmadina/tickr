@@ -2,16 +2,35 @@
 
 **One Kotlin codebase. Android, iOS and the web. Including the entire UI.**
 
+[![CI](https://github.com/agustinmadina/tickr/actions/workflows/ci.yml/badge.svg)](https://github.com/agustinmadina/tickr/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/demo-live-2ECC71)](https://agustinmadina.github.io/tickr/)
+![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Web-5B8DEF)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.4.10-7F52FF)
+
 ### ▶ [Open the live web app](https://agustinmadina.github.io/tickr/)
 
 No install, no sign up. What you see in the browser is not a port or a rewrite: it is the same
 Compose UI that runs on the phones, compiled to WebAssembly. Prices are live, streamed from
 Coinbase over a WebSocket.
 
+### The same screen, built from the same code
+
 <p align="center">
-  <img src="docs/screenshots/iphone-portfolio.png" width="270" alt="Tickr on iPhone">
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/ipad-two-pane.png" width="430" alt="Tickr on iPad, two pane layout">
+  <img src="docs/screenshots/android-portfolio.png" width="250" alt="Tickr running on Android">
+  &nbsp;
+  <img src="docs/screenshots/iphone-portfolio.png" width="250" alt="Tickr running on iOS">
+</p>
+
+<p align="center">
+  <em>Android and iOS. Not a shared design system rendered twice: one implementation, two runtimes.</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/ipad-two-pane.png" width="560" alt="Tickr on iPad, two pane layout">
+</p>
+
+<p align="center">
+  <em>Past 840dp the same state lays itself out as two panes, on a tablet or in a browser window.</em>
 </p>
 
 ---
