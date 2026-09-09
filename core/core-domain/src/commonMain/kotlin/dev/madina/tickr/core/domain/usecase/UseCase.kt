@@ -15,9 +15,10 @@ abstract class UseCase<in PARAMS, out RESULT>(
 ) {
     protected abstract suspend fun execute(parameters: PARAMS): RESULT
 
-    suspend operator fun invoke(parameters: PARAMS): Result<RESULT> = withContext(coroutineDispatcher) {
-        runCatching { execute(parameters) }
-    }
+    suspend operator fun invoke(parameters: PARAMS): Result<RESULT> =
+        withContext(coroutineDispatcher) {
+            runCatching { execute(parameters) }
+        }
 }
 
 /** Lets a no-argument use case be called as `useCase()` rather than `useCase(Unit)`. */

@@ -16,4 +16,5 @@ dependencies {
     implementation(plugin(libs.plugins.kotlinMultiplatform))
     implementation(plugin(libs.plugins.composeMultiplatform))
     implementation(plugin(libs.plugins.composeCompiler))
+    implementation(plugin(libs.plugins.ktlintGradle))
 }

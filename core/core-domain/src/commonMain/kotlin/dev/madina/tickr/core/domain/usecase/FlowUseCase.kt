@@ -21,8 +21,7 @@ abstract class FlowUseCase<in PARAMS, out RESULT>(
 ) {
     protected abstract fun execute(parameters: PARAMS): Flow<RESULT>
 
-    operator fun invoke(parameters: PARAMS): Flow<RESULT> =
-        execute(parameters).flowOn(coroutineDispatcher)
+    operator fun invoke(parameters: PARAMS): Flow<RESULT> = execute(parameters).flowOn(coroutineDispatcher)
 }
 
 /** Lets a no-argument flow use case be called as `useCase()` rather than `useCase(Unit)`. */

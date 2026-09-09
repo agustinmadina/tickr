@@ -21,7 +21,9 @@ import kotlinx.coroutines.delay
 
 /** Mutable holder that is deliberately not snapshot state: written during composition to carry the
  *  last rendered figure across recompositions without invalidating anything. */
-private class AmountHolder(var lastRendered: Double)
+private class AmountHolder(
+    var lastRendered: Double,
+)
 
 /**
  * A number that counts to its new value instead of jumping, and briefly takes the colour of the
@@ -72,11 +74,12 @@ fun AnimatedAmount(
     holder.lastRendered = displayed
 
     val color by animateColorAsState(
-        targetValue = when {
-            !flashOnChange || direction == 0 -> baseColor
-            direction > 0 -> Positive
-            else -> Negative
-        },
+        targetValue =
+            when {
+                !flashOnChange || direction == 0 -> baseColor
+                direction > 0 -> Positive
+                else -> Negative
+            },
         animationSpec = tween(durationMillis = FlashDurationMillis),
     )
 

@@ -1,4 +1,5 @@
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -9,6 +10,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // The module still declares its own `namespace`, which is the one value that cannot be shared.
 
 plugins {
+    id("tickr.ktlint")
     id("com.android.kotlin.multiplatform.library")
     id("org.jetbrains.kotlin.multiplatform")
 }
@@ -44,4 +46,20 @@ kotlin {
         implementation(libs.findLibrary("kotest-framework-engine").get())
         implementation(libs.findLibrary("kotest-assertions-core").get())
     }
+
+    // Specs live in commonTest and execute on the Android host JVM, which is what CI runs. Kotest
+    // needs a JUnit 5 runner to be discovered there; the native and wasm test targets compile the
+    // same specs but do not execute them, which would require the Kotest KSP plugin to generate
+    // entry points.
+    // Resolved by name: `withHostTestBuilder` creates this source set, so there is no generated
+    // accessor for it at the time this convention plugin is compiled.
+    sourceSets.named("androidHostTest") {
+        dependencies {
+            implementation(libs.findLibrary("kotest-runner-junit5").get())
+        }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

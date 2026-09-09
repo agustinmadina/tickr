@@ -23,16 +23,18 @@ import kotlinx.coroutines.launch
  * Effects are a `MutableSharedFlow` with no replay rather than a `StateFlow`, because a navigation
  * event or a message must not be redelivered when the screen is recreated.
  */
-abstract class BaseViewModel<ACTION, EFFECT, STATE>(initialState: STATE) : ViewModel() {
-
+abstract class BaseViewModel<ACTION, EFFECT, STATE>(
+    initialState: STATE,
+) : ViewModel() {
     private val mutableState = MutableStateFlow(initialState)
     val state: StateFlow<STATE> = mutableState.asStateFlow()
 
-    private val mutableEffects = MutableSharedFlow<EFFECT>(
-        replay = 0,
-        extraBufferCapacity = EffectBufferCapacity,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+    private val mutableEffects =
+        MutableSharedFlow<EFFECT>(
+            replay = 0,
+            extraBufferCapacity = EffectBufferCapacity,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
     val effects: Flow<EFFECT> = mutableEffects.asSharedFlow()
 
     protected val currentState: STATE get() = mutableState.value

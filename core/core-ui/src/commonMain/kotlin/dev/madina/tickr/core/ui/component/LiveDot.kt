@@ -30,10 +30,11 @@ fun LiveDot(
     val pulse by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = PulseDurationMillis),
-            repeatMode = RepeatMode.Restart,
-        ),
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = PulseDurationMillis),
+                repeatMode = RepeatMode.Restart,
+            ),
         label = "live-dot-pulse",
     )
 

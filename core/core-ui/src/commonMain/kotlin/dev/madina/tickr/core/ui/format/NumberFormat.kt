@@ -16,11 +16,13 @@ fun Double.formatAmount(decimals: Int = 2): String {
     val whole = scaled / factor.toLong()
     val fraction = scaled % factor.toLong()
 
-    val grouped = whole.toString()
-        .reversed()
-        .chunked(GroupSize)
-        .joinToString(",")
-        .reversed()
+    val grouped =
+        whole
+            .toString()
+            .reversed()
+            .chunked(GroupSize)
+            .joinToString(",")
+            .reversed()
 
     val sign = if (negative) "-" else ""
     return if (decimals == 0) {
@@ -46,11 +48,12 @@ fun Double.formatQuantity(): String =
  * Cheap assets need more decimals to show any movement at all: at two decimals a coin trading near
  * a dollar looks frozen while it is in fact ticking.
  */
-fun Double.formatPrice(): String = when {
-    this >= LargePriceThreshold -> formatUsd()
-    this >= SmallPriceThreshold -> formatUsd(decimals = 3)
-    else -> formatUsd(decimals = 5)
-}
+fun Double.formatPrice(): String =
+    when {
+        this >= LargePriceThreshold -> formatUsd()
+        this >= SmallPriceThreshold -> formatUsd(decimals = 3)
+        else -> formatUsd(decimals = 5)
+    }
 
 private const val GroupSize = 3
 private const val QuantityDecimals = 8

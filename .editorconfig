@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+max_line_length = 120
+
+# Composables are PascalCase by convention, which ktlint's function-naming rule otherwise rejects.
+ktlint_function_naming_ignore_when_annotated_with = Composable
+
+# Compose previews and composables often exceed the default parameter count, and a preview's
+# multiline signature is noise rather than a readability problem.
+ktlint_standard_function-signature = disabled
+
+# Design constants at file level are PascalCase throughout Compose and AndroidX
+# (`private val DefaultSize = 40.dp`), which this rule rejects in favour of SCREAMING_SNAKE_CASE.
+# Following the surrounding ecosystem beats following the linter's default here.
+ktlint_standard_property-naming = disabled
+
+# Trailing commas keep diffs to one line when a parameter is added.
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+[*.{yml,yaml,json}]
+indent_size = 2

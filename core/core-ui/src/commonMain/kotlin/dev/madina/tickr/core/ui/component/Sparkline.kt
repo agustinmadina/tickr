@@ -49,27 +49,30 @@ fun Sparkline(
             return size.height - (normalised * usableHeight)
         }
 
-        val line = Path().apply {
-            moveTo(0f, yOf(points.first()))
-            points.forEachIndexed { index, value ->
-                if (index > 0) lineTo(index * stepX, yOf(value))
+        val line =
+            Path().apply {
+                moveTo(0f, yOf(points.first()))
+                points.forEachIndexed { index, value ->
+                    if (index > 0) lineTo(index * stepX, yOf(value))
+                }
             }
-        }
 
         if (filled) {
-            val area = Path().apply {
-                addPath(line)
-                lineTo(size.width, size.height)
-                lineTo(0f, size.height)
-                close()
-            }
+            val area =
+                Path().apply {
+                    addPath(line)
+                    lineTo(size.width, size.height)
+                    lineTo(0f, size.height)
+                    close()
+                }
             drawPath(
                 path = area,
-                brush = Brush.verticalGradient(
-                    colors = listOf(color.copy(alpha = FillAlpha), Color.Transparent),
-                    startY = 0f,
-                    endY = size.height,
-                ),
+                brush =
+                    Brush.verticalGradient(
+                        colors = listOf(color.copy(alpha = FillAlpha), Color.Transparent),
+                        startY = 0f,
+                        endY = size.height,
+                    ),
             )
         }
 

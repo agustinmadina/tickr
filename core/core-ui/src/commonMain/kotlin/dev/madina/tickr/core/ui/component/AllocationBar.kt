@@ -42,10 +42,11 @@ fun AllocationBar(
     if (total <= 0.0) return
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(Sizing.AllocationBarHeight)
-            .clip(RoundedCornerShape(Radius.Small)),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(Sizing.AllocationBarHeight)
+                .clip(RoundedCornerShape(Radius.Small)),
         horizontalArrangement = Arrangement.spacedBy(SegmentGap),
     ) {
         segments.forEach { segment ->
@@ -55,10 +56,11 @@ fun AllocationBar(
                 label = "allocation-${segment.key}",
             )
             Box(
-                modifier = Modifier
-                    .weight(weight)
-                    .fillMaxHeight()
-                    .background(segment.color),
+                modifier =
+                    Modifier
+                        .weight(weight)
+                        .fillMaxHeight()
+                        .background(segment.color),
             )
         }
     }

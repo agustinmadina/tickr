@@ -19,8 +19,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
+import kotlin.math.roundToInt
 
 /**
  * A line chart the user can run a finger or a cursor along, reporting which sample they are on.
@@ -55,50 +55,51 @@ fun InteractiveLineChart(
     val range = (maximum - minimum).takeIf { it > 0f }
 
     Canvas(
-        modifier = modifier
-            .pointerInput(points.size) {
-                awaitEachGesture {
-                    // Report on the touch down itself, before any movement. A drag detector only
-                    // fires once the finger has travelled past the touch slop, so the marker
-                    // appeared a few millimetres late and the chart read as unresponsive: you had
-                    // to already know it was interactive to discover that it was.
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    onScrub(indexAt(down.position.x, size.width, points.size))
+        modifier =
+            modifier
+                .pointerInput(points.size) {
+                    awaitEachGesture {
+                        // Report on the touch down itself, before any movement. A drag detector only
+                        // fires once the finger has travelled past the touch slop, so the marker
+                        // appeared a few millimetres late and the chart read as unresponsive: you had
+                        // to already know it was interactive to discover that it was.
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        onScrub(indexAt(down.position.x, size.width, points.size))
 
-                    // The down is deliberately not consumed, so a vertical swipe still reaches the
-                    // list underneath. Only once the gesture proves itself horizontal do we claim
-                    // it; until then the scroll wins and the marker is dismissed.
-                    val slopChange = awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ ->
-                        change.consume()
-                    }
-
-                    if (slopChange == null) {
-                        onScrub(null)
-                    } else {
-                        horizontalDrag(slopChange.id) { change ->
-                            onScrub(indexAt(change.position.x, size.width, points.size))
-                            change.consume()
-                        }
-                        onScrub(null)
-                    }
-                }
-            }
-            .pointerInput(points.size) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        when (event.type) {
-                            PointerEventType.Move -> {
-                                val position = event.changes.lastOrNull()?.position ?: continue
-                                // Not consumed: a hover must not swallow events the list needs.
-                                onScrub(indexAt(position.x, size.width, points.size))
+                        // The down is deliberately not consumed, so a vertical swipe still reaches the
+                        // list underneath. Only once the gesture proves itself horizontal do we claim
+                        // it; until then the scroll wins and the marker is dismissed.
+                        val slopChange =
+                            awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ ->
+                                change.consume()
                             }
 
-                            PointerEventType.Exit -> onScrub(null)
+                        if (slopChange == null) {
+                            onScrub(null)
+                        } else {
+                            horizontalDrag(slopChange.id) { change ->
+                                onScrub(indexAt(change.position.x, size.width, points.size))
+                                change.consume()
+                            }
+                            onScrub(null)
                         }
                     }
-                }
-            },
+                }.pointerInput(points.size) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            when (event.type) {
+                                PointerEventType.Move -> {
+                                    val position = event.changes.lastOrNull()?.position ?: continue
+                                    // Not consumed: a hover must not swallow events the list needs.
+                                    onScrub(indexAt(position.x, size.width, points.size))
+                                }
+
+                                PointerEventType.Exit -> onScrub(null)
+                            }
+                        }
+                    }
+                },
     ) {
         val stepX = size.width / (points.size - 1)
 
@@ -109,26 +110,29 @@ fun InteractiveLineChart(
             return size.height - (size.height * VerticalInset) - (normalised * usable * appear)
         }
 
-        val line = Path().apply {
-            moveTo(0f, yOf(points.first()))
-            points.forEachIndexed { index, value ->
-                if (index > 0) lineTo(index * stepX, yOf(value))
+        val line =
+            Path().apply {
+                moveTo(0f, yOf(points.first()))
+                points.forEachIndexed { index, value ->
+                    if (index > 0) lineTo(index * stepX, yOf(value))
+                }
             }
-        }
 
-        val area = Path().apply {
-            addPath(line)
-            lineTo(size.width, size.height)
-            lineTo(0f, size.height)
-            close()
-        }
+        val area =
+            Path().apply {
+                addPath(line)
+                lineTo(size.width, size.height)
+                lineTo(0f, size.height)
+                close()
+            }
         drawPath(
             path = area,
-            brush = Brush.verticalGradient(
-                colors = listOf(color.copy(alpha = FillAlpha), Color.Transparent),
-                startY = 0f,
-                endY = size.height,
-            ),
+            brush =
+                Brush.verticalGradient(
+                    colors = listOf(color.copy(alpha = FillAlpha), Color.Transparent),
+                    startY = 0f,
+                    endY = size.height,
+                ),
         )
 
         drawPath(path = line, color = color, style = Stroke(width = StrokeWidth.toPx()))
