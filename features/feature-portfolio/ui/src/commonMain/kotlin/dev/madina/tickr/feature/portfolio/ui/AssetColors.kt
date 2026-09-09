@@ -24,7 +24,7 @@ private val AssetColors =
         "AVAX" to Color(0xFFE84142),
         "DOT" to Color(0xFFE6007A),
         "LINK" to Color(0xFF2A5ADA),
-        "MATIC" to Color(0xFF8247E5),
+        "POL" to Color(0xFF8247E5),
     )
 
 private val FallbackAssetColors = listOf(Accent, Positive, Color(0xFFB07BF5), Color(0xFFF5A97B))

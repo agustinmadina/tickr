@@ -77,4 +77,11 @@ private const val NamePrefix = 2
 private const val Contains = 3
 private const val DefaultLimit = 40
 
-private val Popular = listOf("BTC", "ETH", "SOL", "XRP", "ADA", "DOGE", "AVAX", "LINK", "DOT", "MATIC")
+/**
+ * Leads the unfiltered list, since the alphabet opens on tickers nobody came looking for.
+ *
+ * Every entry is matched against the live catalogue, so a symbol the exchange has dropped simply
+ * never appears. That is safe but silent: MATIC sat here for a while after Polygon migrated to POL
+ * and Coinbase delisted the pair, doing nothing at all.
+ */
+private val Popular = listOf("BTC", "ETH", "SOL", "XRP", "ADA", "DOGE", "AVAX", "LINK", "DOT", "POL")
