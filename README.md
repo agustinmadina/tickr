@@ -85,11 +85,54 @@ shared/            declares the three targets, hosts App() and the DI root
 build-logic/       convention plugins, so the target list is declared once
 ```
 
+```mermaid
+graph TD
+    subgraph entry["Entry points, ~20 lines each"]
+        AND["androidApp<br/>MainActivity"]
+        IOS["iosApp<br/>ContentView.swift"]
+        WEB["web<br/>index.html"]
+    end
+
+    SHARED["shared<br/>App() + DI root<br/>declares the 3 targets"]
+
+    subgraph feature["feature-portfolio"]
+        UI["ui<br/>screens, ViewModels"]
+        DOMAIN["domain<br/>models, use cases<br/>zero frameworks"]
+        DATA["data<br/>repositories, DTOs"]
+        DI["di<br/>binds impls to interfaces"]
+    end
+
+    subgraph core["core, domain-agnostic"]
+        COREUI["core-ui"]
+        CORENET["core-network"]
+        CORESTORE["core-storage"]
+        COREDOMAIN["core-domain"]
+    end
+
+    AND --> SHARED
+    IOS --> SHARED
+    WEB --> SHARED
+    SHARED --> UI
+    SHARED --> DI
+
+    UI --> DOMAIN
+    DATA --> DOMAIN
+    DI --> UI
+    DI --> DATA
+    DI --> DOMAIN
+
+    UI --> COREUI
+    DATA --> CORENET
+    DATA --> CORESTORE
+    DOMAIN --> COREDOMAIN
+
+    UI -. "no dependency:<br/>a screen cannot reach<br/>an implementation" .-> DATA
+
+    linkStyle 14 stroke:#F2555A,stroke-dasharray:4 4
 ```
-  ui ──→ domain ←── data
-   \        ↑        /
-    └──→   di   ←──┘
-```
+
+The dashed line is the one that matters: `ui` does not declare a dependency on `data`, so reaching
+past the domain interfaces is a compile error rather than a review comment.
 
 A few decisions worth the click if you are reviewing this technically:
 
