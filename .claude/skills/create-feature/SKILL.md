@@ -79,7 +79,7 @@ Read and apply each template with placeholder substitution:
 | `templates/build.gradle.kts.ui` | `features/feature-$0/ui/build.gradle.kts` |
 | `templates/build.gradle.kts.di` | `features/feature-$0/di/build.gradle.kts` |
 
-NOTE: Add `core-database` (+ `sqldelight` plugin), `core-network`, or `core-realtime` to data only if the feature needs them. Ask the user if unsure.
+NOTE: Add `core-network` or `core-storage` to data only if the feature needs them. Ask the user if unsure.
 
 ## Step 3: Create starter Kotlin files
 

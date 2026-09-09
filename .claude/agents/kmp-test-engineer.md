@@ -72,10 +72,10 @@ Capture the exit code and any error output.
 
 ```bash
 # JVM/Desktop tests (fastest, runs on all hosts)
-./gradlew desktopTest :sharedLib:jvmTest
+./gradlew testAndroidHostTest
 
 # Module-specific tests
-./gradlew :features:feature-auth:domain:desktopTest
+./gradlew :features:feature-portfolio:domain:testAndroidHostTest
 ```
 
 Capture the exit code, test count, and any failure output.
@@ -141,14 +141,14 @@ This is a Kotlin Multiplatform project with modular clean architecture:
 - **Shared library**: `com.example.app.shared` in `sharedLib/`
 - **Feature modules**: Each feature has **4 separate Gradle sub-modules** (`domain/`, `data/`, `ui/`, `di/`), each with own `build.gradle.kts`. Tests live in each sub-module's `commonTest/` source set. Domain tests go in `:domain`, repo tests in `:data`, ViewModel tests in `:ui`.
 - **Targets**: Android, iOS, JVM/Desktop
-- **Key technologies**: Compose Multiplatform, Koin, Ktor, SQLDelight, Coroutines & Flow
+- **Key technologies**: Compose Multiplatform, Koin, Ktor, multiplatform-settings, Coroutines & Flow
 
 ## Test Source Set Structure
 
 ```
 src/
 ├── commonTest/     # Tests that run on ALL platforms (preferred location)
-├── androidUnitTest/ # Android-specific tests (previously androidTest for unit tests)
+├── androidHostTest/ # Android target tests, run on the host JVM
 ├── iosTest/        # iOS-specific tests
 └── jvmTest/        # JVM/Desktop-specific tests
 ```
@@ -160,7 +160,7 @@ src/
 
 ## Testing Framework — Kotest BehaviorSpec (mandatory)
 
-**All new tests in this project MUST use Kotest `BehaviorSpec` with Given/When/Then structure.** Do not write plain `kotlin.test` `@Test`-style tests. The Kotest stack is already wired via `:core:core-testing` — depending on that module in `commonTest` gives you `kotest-assertions-core` and `kotest-framework-engine` transitively (plus `kotest-runner-junit5` on the desktop JVM target).
+**All new tests in this project MUST use Kotest `BehaviorSpec` with Given/When/Then structure.** Do not write plain `kotlin.test` `@Test`-style tests. The Kotest stack is wired by the `tickr.kmp.library` convention plugin, so every module already has `kotest-assertions-core` and `kotest-framework-engine` in `commonTest` and the JUnit 5 runner on the Android host target.
 
 Scenario descriptions live in the `Given` / `When` / `Then` strings, not in backticked function names. Use Kotest matchers (`shouldBe`, `shouldNotBeNull`, `shouldBeInstanceOf`, `shouldThrow`) instead of `assertEquals` / `assertTrue` / `assertNotNull`.
 
@@ -542,7 +542,7 @@ in `.claude/rules/code-quality-checklist.md`. These rules are enforced by the PR
 agent and violations will block merge. Key points:
 
 - Use `internal` visibility on all implementation classes in feature/data modules
-- Domain layer: zero framework imports (no Koin, Ktor, SQLDelight)
+- Domain layer: zero framework imports (no Koin, Ktor, no platform types)
 - No `Dispatchers.IO`, `runBlocking`, `GlobalScope`, or `synchronized` in `commonMain`
 - No `!!` operator — use safe alternatives
 - Every `expect` needs `actual` for Android, iOS, and Desktop

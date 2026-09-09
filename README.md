@@ -226,17 +226,23 @@ Several of them exist because a defect got through first and the spec was writte
 This repository is also a demonstration of working with AI coding agents in a way that holds up,
 rather than accepting whatever they produce. The setup lives in [`.claude/`](.claude/):
 
-- **36 architecture and code-quality rules** that load themselves. Each rule declares the file
+- **34 architecture and code-quality rules** that load themselves. Each rule declares the file
   globs it governs, so an agent editing a ViewModel gets the ViewModel rules in context
   automatically, and a reviewer reads all of them. They are the reason the boundaries above are
   consistent rather than aspirational.
 - **[`CLAUDE.md`](CLAUDE.md)** is what makes those rules binding, plus the non-obvious constraints
   that cost time to rediscover.
-- **17 specialised agents and 11 skills** for planning, implementing, reviewing and shipping,
+- **16 specialised agents and 11 skills** for planning, implementing, reviewing and shipping,
   including a review agent that reads the full rule set against a diff.
-- **Rules were pruned, not copied.** Five that described infrastructure this project does not have
-  were deleted, because a rule describing a structure you do not have is worse than no rule. One
-  was extended when the code needed a pattern it did not cover.
+- **Rules were pruned, not copied.** Seven that described infrastructure this project does not have
+  were deleted and several more retargeted, because a rule describing a structure you do not have is
+  worse than no rule: one demanded a `desktopMain` actual for every `expect` and never mentioned
+  wasm, which is the target the project exists for.
+- **The agents were run against the whole codebase, not just a diff.** That pass is where the
+  pruning above came from, along with a chart animation that had never run, a loading state the app
+  could not leave when the feed was unreachable, and a spec that named the behaviour it was checking
+  and did not check it. Each fix was confirmed by breaking the code again and watching the test go
+  red.
 - **Verification is visual and recorded.** Screens are checked by running them and reading the
   screenshot, not by trusting that they compile. Several real defects in this repo were found that
   way and only that way, including a chart that measured zero pixels tall.

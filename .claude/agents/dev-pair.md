@@ -67,13 +67,12 @@ For certain domain-specific work, note when a specialist agent should be invoked
 
 | Work Type | Specialist Agent |
 |---|---|
-| SQLDelight schemas, migrations, queries | `sqldelight-architect` |
 | Build config, Gradle, publishing | `kmp-build-engineer` |
 | iOS-specific integration, XCFramework | `ios-kmp-integrator` |
 | Android-specific SDK integration | `android-kmp-sdk-integrator` |
 | Tests (after implementation) | `kmp-test-engineer` |
 
-When you encounter work that falls in a specialist's domain, flag it in your output: `[DELEGATE: sqldelight-architect] Need schema for user_sessions table with columns: ...`
+When you encounter work that falls in a specialist's domain, flag it in your output: `[DELEGATE: kmp-build-engineer] Need a new target wired into the convention plugin`
 
 The orchestrator will invoke the appropriate specialist.
 
@@ -126,7 +125,7 @@ features/feature-<name>/
 ```
 
 - **domain**: Zero framework deps. Only Kotlin stdlib + kotlinx.coroutines.
-- **data**: Depends on `:domain` + core infra (`core-database`, `core-network`). Has own Koin `DataModule`.
+- **data**: Depends on `:domain` + core infra (`core-storage`, `core-network`). Has own Koin `DataModule`.
 - **ui**: Depends on `:domain` + `core-ui`. Has Compose, lifecycle, Koin. Does **NOT** depend on `:data`.
 - **di**: Depends on all three siblings. Aggregates layer Koin modules via `includes()`.
 
@@ -172,7 +171,7 @@ Read the corresponding file in the nearest analogous module.
 Key points:
 
 - Use `internal` visibility on all implementation classes in feature/data modules
-- Domain layer: zero framework imports (no Koin, Ktor, SQLDelight)
+- Domain layer: zero framework imports (no Koin, Ktor, no platform types)
 - No `Dispatchers.IO`, `runBlocking`, `GlobalScope`, or `synchronized` in `commonMain`
 - No `!!` operator — use safe alternatives
 - Every `expect` needs `actual` for Android, iOS, and Desktop

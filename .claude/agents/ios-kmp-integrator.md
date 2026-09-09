@@ -139,7 +139,7 @@ in `.claude/rules/code-quality-checklist.md`. These rules are enforced by the PR
 agent and violations will block merge. Key points:
 
 - Use `internal` visibility on all implementation classes in feature/data modules
-- Domain layer: zero framework imports (no Koin, Ktor, SQLDelight)
+- Domain layer: zero framework imports (no Koin, Ktor, no platform types)
 - No `Dispatchers.IO`, `runBlocking`, `GlobalScope`, or `synchronized` in `commonMain`
 - No `!!` operator — use safe alternatives
 - Every `expect` needs `actual` for Android, iOS, and Desktop

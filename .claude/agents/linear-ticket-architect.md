@@ -29,8 +29,8 @@ This is a Kotlin Multiplatform (KMP) project with modular clean architecture tar
   - `di/` — Aggregates all layer Koin modules. Only public export. Depends on all 3 siblings.
 - **Dependency Rules**: `ui → domain ← data`, `di → all three`. Enforced at Gradle level.
 - **DI Split**: Each layer has its own Koin module (`DataModule`, `UiModule`). Domain use case wiring lives in `di/` to preserve domain purity. The `di/` sub-module aggregates them via `includes()`.
-- **Core Modules**: `core-network`, `core-database`, `core-realtime` are infrastructure-only, used only in `data/` sub-modules
-- **Technologies**: Compose Multiplatform, Koin DI, Ktor networking, SQLDelight database, Coroutines & Flow
+- **Core Modules**: `core-network`, `core-storage` are infrastructure-only, used only in `data/` sub-modules
+- **Technologies**: Compose Multiplatform, Koin DI, Ktor networking, multiplatform-settings, Coroutines & Flow
 - **Package Convention**: `com.example.app.feature.<name>.<layer>` for sub-modules (e.g., `com.example.app.feature.auth.domain`)
 
 When breaking down tickets, consider:
@@ -42,7 +42,6 @@ When breaking down tickets, consider:
 - **settings.gradle.kts**: 4 `include()` entries per feature
 - **sharedLib integration**: 4 `implementation()` dependencies + `App.kt` routing
 - Cross-platform considerations (Android, iOS, Desktop) — especially `expect/actual` in data/ui
-- Database migrations if SQLDelight schemas change
 
 ## Ticket Creation Process
 

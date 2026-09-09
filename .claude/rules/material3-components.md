@@ -36,28 +36,6 @@ This rule applies to all production source sets (`commonMain`, `androidMain`, `d
   - **Fix**: Remove all M2 imports and replace with M3 equivalents; files must not mix both systems
 - `MaterialTheme.shapes` used with M2 shape properties (`small`, `medium`, `large` directly on `Shapes`)
   - **Fix**: Use M3 shape tokens (`MaterialTheme.shapes.small` is valid in M3 as well, but verify the import is from M3)
-- A Material3 component used where the design system ships a `Yes*` equivalent — see the table below
-  - **Fix**: Replace with the design system component. Material3 is the floor, not the target: a raw M3 widget renders M3 defaults, not the YES tokens from Figma, so it drifts visually from every screen around it
-
-## Prefer the Design System Component
-
-Material3 is the *baseline* — the design system (`example.xyz.mobiledesignsystem.designsystem`) is what the app should actually render. When the DS ships a component, using the raw M3 one is a violation even though it is Material **3**.
-
-| Material3 | Design system replacement |
-|---|---|
-| `Switch` | `YesToggle` (pass `onCheckedChange = null` and no `label` for a bare indicator) |
-| `Checkbox` | `YesCheckbox` (note: takes a `CheckboxState`, not a `Boolean`) |
-| `RadioButton` | `YesRadioButton` |
-| `Button` / `OutlinedButton` | `YesButton` (`ButtonRole.Primary` / `ButtonRole.Secondary`) |
-| `TextButton` | `YesButton(role = ButtonRole.Plain)` |
-| `TextField` / `OutlinedTextField` | `YesInput` |
-| `CircularProgressIndicator` | `YesLoader` (`LoaderSize.Sm` / `Md` / `Lg`) |
-| `HorizontalDivider` / `VerticalDivider` | `YesDivider` |
-| `NavigationBar` / `NavigationBarItem` | `YesBottomNav` + `BottomNavItem` |
-| `TabRow` / `Tab` | `YesTabs` |
-| `AssistChip` / `FilterChip` / `SuggestionChip` | `YesChip` |
-| `ListItem` | `YesListItem` |
-| `TooltipBox` / `PlainTooltip` / `RichTooltip` | `YesTooltip` |
 
 ### Material3 that stays correct
 

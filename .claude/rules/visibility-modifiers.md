@@ -50,7 +50,7 @@ All declarations should use the most restrictive visibility modifier possible. I
 - **Koin module vals**: Layer Koin module vals in separate Gradle sub-modules (`data/`, `ui/`) MUST be `public` so the `di/` aggregator can import them via `includes()`. Only Koin vals defined within the `di/` sub-module itself can be `internal`.
 - **`@Preview` functions**: Every `@Composable` function annotated with `@Preview` MUST be `private`. They are compile-time-only tooling artifacts with no runtime callers — `internal` widens visibility beyond what the tooling requires and leaks preview scaffolding into the module's API surface.
 - **`PreviewParameterProvider` implementations**: MUST be `private` (preferred, when used in one file) or `internal` (when shared across files in the same module). They are preview-only sample-data classes with no framework requirement to be `public`. For the full rule, see `compose-preview-parameter-provider.md`.
-- **Test classes**: Non-abstract test classes in all test source sets (`commonTest/`, `androidUnitTest/`, `iosTest/`, `desktopTest/`) MUST be `internal`. Abstract base test classes in `core-testing` that are designed for cross-module subclassing are the only exception and must be `public`. For the full rule, see `test-class-visibility.md`.
+- **Test classes**: Test classes in all test source sets (`commonTest/`, `androidHostTest/`, `iosTest/`, `wasmJsTest/`) MUST be `internal`. For the full rule, see `test-class-visibility.md`.
 
 ## Common Violations
 

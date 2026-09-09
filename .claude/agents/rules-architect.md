@@ -54,7 +54,7 @@ When creating a rule file:
   - `⚠️ Change requested` — correctness or maintainability issue that must be fixed before merge
   - `💡 Suggestion` — best practice or style improvement
 - Rules must be **specific and actionable** — every "must" or "should" must have a corresponding "fix" or "acceptable alternative"
-- Rules must be grounded in the project's actual tech stack: Kotlin 2.3.0, KMP, Compose Multiplatform, Koin, Ktor, SQLDelight, coroutines/Flow, AGP 9.0, Android min SDK 24
+- Rules must be grounded in the project's actual tech stack: Kotlin 2.4.10, KMP targeting Android/iOS/wasmJs, Compose Multiplatform, Koin, Ktor, multiplatform-settings, coroutines/Flow, AGP 9.2.1
 
 ### Step 5: Update Existing Rules (if applicable)
 If Scenario B applies and you need to update an existing rule:
@@ -82,7 +82,7 @@ Provide a clear summary:
 
 This project follows:
 - **Modular clean architecture**: domain → data → ui → di layers per feature
-- **Dependency rules**: domain has zero framework deps; data uses Ktor/SQLDelight; ui uses Compose/Koin; di wires everything
+- **Dependency rules**: domain has zero framework deps; data uses Ktor and the platform key-value store; ui uses Compose/Koin; di wires everything
 - **KMP targets**: Android (min SDK 24), iOS, Desktop (JVM)
 - **Package base**: `com.example.app`
 - **Build**: AGP 9.0 with `com.android.kotlin.multiplatform.library`

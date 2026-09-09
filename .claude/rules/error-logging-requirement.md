@@ -49,7 +49,7 @@ For classes outside `BaseViewModel`, declare `log` as a `private val` with `Logg
 ## Exemptions
 
 - `catch (e: CancellationException) { throw e }` — rethrow immediately, no logging needed
-- Test source sets (`commonTest`, `androidUnitTest`, `iosTest`, `desktopTest`) — test code may use `assertFailsWith` and other patterns without logging
+- Test source sets (`commonTest`, `androidHostTest`, `iosTest`, `wasmJsTest`) — test code may use `assertFailsWith` and other patterns without logging
 - A `catch` block that converts the exception into a `Result.failure(e)` and returns it to the caller — the caller is responsible for handling and logging the failure; the conversion itself does not need to log. Note: new repositories and data sources do not use this pattern at all — they rethrow (see `repository-error-propagation.md`); this exemption applies to pre-existing call sites
 
 ## Common Mistakes

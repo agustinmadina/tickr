@@ -144,7 +144,6 @@ Show which agents delegate to which specialists:
 ## Specialist Delegations
 
   dev-pair delegates to:
-  ├── sqldelight-architect   (sonnet / cyan)   — SQLDelight schemas, migrations, queries
   ├── kmp-build-engineer     (sonnet / yellow) — Build config, Gradle, publishing
   ├── ios-kmp-integrator     (sonnet / red)    — iOS integration, XCFramework
   ├── android-kmp-sdk-integrator (sonnet / green) — Android SDK integration
@@ -152,7 +151,6 @@ Show which agents delegate to which specialists:
 
   implementation-planner delegates to:
   ├── kmp-mobile-architect   (opus / purple)   — New module design, SDK architecture
-  ├── sqldelight-architect   (sonnet / cyan)   — Database schema design
   ├── kmp-build-engineer     (sonnet / yellow) — Build configuration
   ├── ios-kmp-integrator     (sonnet / red)    — iOS integration
   ├── android-kmp-sdk-integrator (sonnet / green) — Android integration
@@ -233,7 +231,6 @@ Output a complete routing table derived from the parsed data:
 | ci-autofix                 | CI failure logs / review comments   | PR comment + push                        | Unable to fix → posts analysis comment            |
 | kmp-mobile-architect       | implementation-planner (consult)    | implementation-planner (design)          | Standalone consultation                           |
 | kmp-build-engineer         | dev-pair / planner (delegate)       | Caller agent                             | Standalone specialist                             |
-| sqldelight-architect       | dev-pair / planner (delegate)       | Caller agent                             | Standalone specialist                             |
 | ios-kmp-integrator         | dev-pair / planner (delegate)       | Caller agent                             | Standalone specialist                             |
 | android-kmp-sdk-integrator | dev-pair / planner (delegate)       | Caller agent                             | Standalone specialist                             |
 | kmp-test-engineer (write)  | dev-pair (delegate) / user          | Test files committed                     | Standalone specialist                             |

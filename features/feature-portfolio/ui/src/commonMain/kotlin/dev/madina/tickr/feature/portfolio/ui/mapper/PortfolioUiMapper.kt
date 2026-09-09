@@ -1,7 +1,7 @@
 package dev.madina.tickr.feature.portfolio.ui.mapper
 
-import dev.madina.tickr.core.ui.theme.assetColor
 import dev.madina.tickr.feature.portfolio.domain.model.Portfolio
+import dev.madina.tickr.feature.portfolio.ui.assetColor
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

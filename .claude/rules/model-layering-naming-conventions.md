@@ -16,7 +16,7 @@ Every model class must belong to exactly one layer and carry a suffix that makes
 
 | Layer | Suffix | Example | Lives in |
 |---|---|---|---|
-| Database (SQLDelight entity or manual DB model) | `Entity` | `UserEntity` | `features/*/data/` or `core-database/` |
+| Persisted record (what is written to the platform store) | `Entity` | `HoldingEntity` | `features/*/data/` |
 | API / network (Ktor response/request body) | `Json` | `UserJson` | `features/*/data/` |
 | Domain (business model, source of truth) | _(none)_ | `User` | `features/*/domain/` |
 | UI (display model for Compose screens) | `Ui` | `UserUi` | `features/*/ui/` |
@@ -29,7 +29,7 @@ These suffixes are mandatory for all new code and for any file modified in a PR.
 
 - A domain model (`features/*/domain/`) carries `@Serializable`, `@SerialName`, `@Json`, or any kotlinx.serialization annotation
   - **Fix**: Move the serialization annotation to a `*Json` DTO in the `data/` sub-module and write a mapper from `*Json` to the domain model
-- A domain model carries SQLDelight-generated table type references or any `app.cash.sqldelight.*` import
+- A domain model carries a persistence type or any `com.russhwolf.settings.*` import
   - **Fix**: Define a separate `*Entity` in `data/` and map it to the domain model in a mapper class
 - A `*Json` or `*Entity` type appears as a parameter or return type in a domain repository interface or use case
   - **Fix**: The domain interface must use the plain domain model; the `data/` layer's implementation is responsible for mapping before returning to the caller
@@ -40,7 +40,7 @@ These suffixes are mandatory for all new code and for any file modified in a PR.
 
 ### MUST FLAG
 
-- A `*Json` DTO is used directly as a SQLDelight column adapter or persisted to the DB without an intermediary `*Entity`
+- A `*Json` DTO is persisted directly, without an intermediary `*Entity`, so the wire format becomes the storage format
   - **Fix**: Define a dedicated `*Entity` and map `*Json` to it; API contracts change independently of DB schema
 - A `*Ui` model exposes nullable fields that the domain model has already guaranteed non-null — the ViewModel is likely skipping the mapping step
   - **Fix**: The ViewModel mapper should resolve optionality; UI state should reflect what is actually displayable, not what the network might return
@@ -62,7 +62,7 @@ When in doubt, define a `*Json` enum in `data/` and map it to the domain enum. E
 ## Mapper Placement
 
 - `*Json` → domain: mapper lives in `features/*/data/src/commonMain/`, typically as an extension function on the `*Json` type or a dedicated `*Mapper` class
-- `*Entity` → domain: mapper lives in `features/*/data/src/commonMain/`, alongside the data source that reads from SQLDelight
+- `*Entity` → domain: mapper lives in `features/*/data/src/commonMain/`, alongside the data source that reads from the store
 - domain → `*Ui`: mapper lives in `features/*/ui/src/commonMain/`, typically as a private extension or a dedicated `*UiMapper`; never in `domain/`
 - domain → `*Json` (outbound request body): mapper lives in `features/*/data/src/commonMain/`
 
@@ -74,7 +74,7 @@ Mappers are intentional boilerplate. They are the seam that protects each layer 
 - Placing `@Serializable` on a domain model because "the API and domain shapes are identical right now" — API shapes diverge; domain shapes must not be coupled to serialization formats
 - Defining a shared `data class` with no suffix in `shared-domain/` that is also used as a network DTO — `shared-domain/` models follow the same no-suffix rule and must be free of framework annotations
 - Writing a mapper in `domain/` as a convenience extension (`fun UserJson.toDomain()`) — this forces `domain/` to import `data/` types, inverting the dependency graph
-- Using a SQLDelight-generated type (e.g., `SelectAllUsers`) directly in a repository return type instead of mapping it to a domain model first
+- Returning a persisted `*Entity` from a repository instead of mapping it to a domain model first
 
 ## Examples
 
@@ -97,7 +97,7 @@ internal enum class UserRoleJson {
 }
 
 // features/feature-profile/data/src/commonMain/kotlin/com/example/app/feature/profile/data/local/UserEntity.kt
-// DB entity: mirrors the SQLDelight table structure, uses Entity suffix.
+// Persisted record: mirrors what is written to the store, uses the Entity suffix.
 internal data class UserEntity(
     val id: String,
     val displayName: String,
@@ -181,7 +181,7 @@ class ProfileViewModel(private val getUser: GetUserUseCase) : ViewModel() {
 fun UserJson.toDomain() = User(id = userId, displayName = displayName)
 
 // BAD: Repository interface in domain/ references the *Entity type —
-// the domain contract now leaks a SQLDelight implementation detail.
+// the domain contract now leaks a persistence implementation detail.
 interface UserRepository {
     suspend fun getUser(id: String): UserEntity // must return User, not UserEntity
 }

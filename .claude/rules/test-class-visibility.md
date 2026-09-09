@@ -6,9 +6,9 @@ paths:
   - "**/*Spec.kt"
   - "**/test/**/*.kt"
   - "**/commonTest/**/*.kt"
-  - "**/androidUnitTest/**/*.kt"
+  - "**/androidHostTest/**/*.kt"
   - "**/iosTest/**/*.kt"
-  - "**/desktopTest/**/*.kt"
+  - "**/wasmJsTest/**/*.kt"
 ---
 
 # Test Class Visibility
@@ -25,20 +25,19 @@ _(nothing in tests rises to build-breaking at the toolchain level — all violat
 
 ### MUST FLAG
 
-- A non-abstract test class in any test source set (`commonTest/`, `androidUnitTest/`, `iosTest/`, `desktopTest/`) that has no explicit visibility modifier (defaults to `public`)
+- A non-abstract test class in any test source set (`commonTest/`, `androidHostTest/`, `iosTest/`, `wasmJsTest/`) that has no explicit visibility modifier (defaults to `public`)
   - **Fix**: Add `internal` before `class`
 - A non-abstract test class explicitly declared `public`
   - **Fix**: Change to `internal`. There is no scenario where a concrete test class is a valid cross-module dependency
 - A test helper class, fake, stub, or mock defined in a feature module's test source set without `internal`
-  - **Fix**: Add `internal`. Shared test fixtures belong in `core-testing`, not in a feature module's test sources; if this fixture is meant to be reused across modules, move it to `core-testing` and declare it `public` there
+  - **Fix**: Add `internal`. This project has no shared test-fixture module: every fake is built inside the `When` block that uses it, which is also what keeps Kotlin/Native from leaking state between scenarios
 - A `companion object` inside a test class that exposes factory methods or constants without `internal` on the containing class
   - **Fix**: Make the containing class `internal`; the companion object inherits the visibility of its owner
 
 ## Common Mistakes
 
 - Forgetting that Kotlin's default visibility is `public` — in test source sets this is just as true as in `main` source sets; the compiler does not apply any implicit narrowing
-- Defining reusable fakes or test data builders directly inside a feature module's test sources and leaving them `public` — the intent is usually to share them, but the correct location for shared test fixtures is `core-testing`, not a feature module
-- Marking an abstract base class `internal` when it must be `public` to be subclassed by test classes in other modules — abstract base test classes in `core-testing` are the one legitimate exception and must remain `public`
+- Defining reusable fakes or test data builders directly inside a feature module's test sources and leaving them `public`
 - Applying `internal` to an `object` test helper but omitting it on a nearby test `class` in the same file — check all declarations in the file, not just the first one
 
 ## Examples
@@ -59,17 +58,17 @@ internal class LoginUseCaseTest {
 
 // features/feature-auth/domain/src/commonTest/kotlin/.../FakeAuthRepository.kt
 // Test fake is internal — it lives in the feature module's own test sources and is only
-// needed by tests within this module. If another module needs this fake, move it to core-testing.
+// needed by tests within this module.
 internal class FakeAuthRepository : AuthRepository {
     var shouldFail = false
     override suspend fun login(email: String, password: String): Result<AuthToken> =
         if (shouldFail) Result.failure(Exception("invalid")) else Result.success(AuthToken.fixture())
 }
 
-// core/core-testing/src/commonMain/kotlin/.../BaseRepositoryTest.kt
-// Abstract base class lives in core-testing and is public — it is designed to be subclassed
-// by test classes in other modules, so public visibility is intentional and correct here.
-abstract class BaseRepositoryTest {
+// features/feature-portfolio/data/src/commonTest/kotlin/.../Fakes.kt
+// Even a shared base class stays internal: this project has no cross-module test-fixture
+// module, so nothing outside this Gradle module ever needs to subclass it.
+internal abstract class BaseRepositoryTest {
     protected val testDispatcher = StandardTestDispatcher()
     protected val testScope = TestScope(testDispatcher)
 
@@ -98,16 +97,15 @@ public class LoginUseCaseTest {
 
 // BAD: Test fake is public inside a feature module's test sources.
 // If SessionRepositoryTest in another feature module imports this fake, it creates a hidden
-// cross-module test dependency on a feature-internal type. Move to core-testing instead.
+// cross-module test dependency on a feature-internal type.
 class FakeAuthRepository : AuthRepository {
     var shouldFail = false
     override suspend fun login(email: String, password: String): Result<AuthToken> = ...
 }
 
-// BAD: Abstract base class is internal inside core-testing.
-// Test classes in other modules cannot extend it — the internal modifier prevents cross-module
-// subclassing even for abstract classes. Abstract base test classes in core-testing must be public.
-internal abstract class BaseRepositoryTest {
+// BAD: a fixture left public so another module could reach it.
+// There is no shared test-fixture module here, so this only widens the surface for nothing.
+abstract class BaseRepositoryTest {
     protected val testDispatcher = StandardTestDispatcher()
 }
 ```
@@ -115,5 +113,4 @@ internal abstract class BaseRepositoryTest {
 ## Severity
 
 - `⚠️ Change requested` — Non-abstract test class in any test source set without an explicit `internal` modifier (whether it defaulted to `public` or is explicitly `public`)
-- `⚠️ Change requested` — Test helper class, fake, or stub in a feature module's test sources that is `public` and should either be `internal` or moved to `core-testing`
-- `💡 Suggestion` — Abstract base test class in `core-testing` that is `internal` — must be `public` to be subclassable from other modules
+- `⚠️ Change requested` — Test helper class, fake, or stub in a feature module's test sources that is `public` and should be `internal`

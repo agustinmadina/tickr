@@ -37,9 +37,8 @@ Determine the module scope from the file paths that were changed:
 | `core/core-domain/...` | `core-domain` |
 | `core/core-ui/...` | `core-ui` |
 | `core/core-common/...` | `core-common` |
-| `core/core-database/...` | `core-database` |
-| `core/core-navigation/...` | `core-navigation` |
-| `core/core-realtime/...` | `core-realtime` |
+| `core/core-storage/...` | `core-storage` |
+
 | `features/feature-auth/...` | `auth` |
 | `features/feature-<name>/...` | `<name>` |
 | `androidApp/...` | `android` |

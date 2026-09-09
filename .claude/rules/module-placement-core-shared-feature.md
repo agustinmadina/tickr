@@ -4,7 +4,7 @@
 
 Every new module must be placed in the top-level group that matches its nature, decided on a single axis: **technical infrastructure vs business logic vs user-facing feature**. Misplacing a module leaks domain knowledge into infrastructure, couples features to each other, or buries a reusable concern inside one feature where no sibling can reach it.
 
-- **`core/`** — domain-agnostic technical infrastructure. Knows *how* (Ktor setup, SQLDelight setup, Compose theme, navigation, analytics, base `UseCase`/repository contracts). Knows nothing about `User`, `Endorsement`, `Payment`. Could ship unchanged in an unrelated app. Exposes its primary deps as `api`.
+- **`core/`** — domain-agnostic technical infrastructure. Knows *how* (Ktor setup, key-value storage setup, Compose theme, design tokens, base `UseCase`/repository contracts). Knows nothing about `Holding`, `Portfolio`, `PriceTick`. Could ship unchanged in an unrelated app. Exposes its primary deps as `api`.
 - **`shared/`** — cross-feature business logic. Knows the domain (`User`, `Auth`, `Session`, `Identity`) and is consumed by **two or more** features. Product-specific.
 - **`features/`** — one user-facing slice (its screens + the domain/data behind them), consumed by no other feature.
 

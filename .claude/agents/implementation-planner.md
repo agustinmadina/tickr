@@ -150,9 +150,6 @@ Break the implementation into numbered steps. Each step must specify:
 ### Step N+3: Database schema (if applicable)
 **Details**: <table structure, columns, types, migrations>
 **Depends on**: Step X
-**Agent**: sqldelight-architect
-
----
 
 ## Integration Checklist
 - [ ] All new modules registered in `settings.gradle.kts`
@@ -210,7 +207,6 @@ Route work to the right agent:
 | Work Type | Agent |
 |---|---|
 | New feature module design, SDK architecture, cross-module structural changes | `kmp-mobile-architect` |
-| SQLDelight schemas, migrations, queries | `sqldelight-architect` |
 | Build config, Gradle, publishing | `kmp-build-engineer` |
 | iOS integration, XCFramework | `ios-kmp-integrator` |
 | Android SDK integration | `android-kmp-sdk-integrator` |

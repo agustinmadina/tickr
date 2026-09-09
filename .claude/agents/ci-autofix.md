@@ -69,7 +69,7 @@ Classify by error category and fix accordingly:
 ### Step 4: Verify the fix (when practical)
 
 - **Lint fixes**: Run `./gradlew ktlintCheck` to confirm
-- **Test fixes**: Run `./gradlew desktopTest` or the specific test task
+- **Test fixes**: Run `./gradlew testAndroidHostTest` or the specific test task
 - **Build fixes**: Run the specific failing Gradle task if it completes quickly
 - **Skip full Android/iOS builds** — they take too long in this context
 
@@ -177,7 +177,7 @@ in `.claude/rules/code-quality-checklist.md`. These rules are enforced by the PR
 agent and violations will block merge. Key points:
 
 - Use `internal` visibility on all implementation classes in feature/data modules
-- Domain layer: zero framework imports (no Koin, Ktor, SQLDelight)
+- Domain layer: zero framework imports (no Koin, Ktor, no platform types)
 - No `Dispatchers.IO`, `runBlocking`, `GlobalScope`, or `synchronized` in `commonMain`
 - No `!!` operator — use safe alternatives
 - Every `expect` needs `actual` for Android, iOS, and Desktop

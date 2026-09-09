@@ -35,10 +35,10 @@ Repository implementations in `features/*/data/`, `shared/shared-data/`, and `sd
 | Dependency type | Examples |
 |---|---|
 | Remote data sources | `*RemoteDataSource`, `*ApiClient`, `*ApiService` |
-| Local data sources | `*LocalDataSource`, `*Dao`, SQLDelight `*Queries` |
+| Local data sources | `*LocalDataSource`, `*Store` |
 | Managers / coordinators | `*Manager`, `*Store`, `*Cache` |
 | Mappers | `*Mapper`, `*DtoMapper` |
-| Core infrastructure | `HttpClient` (Ktor), `*Database` (SQLDelight), `DispatcherProvider` |
+| Core infrastructure | `HttpClient` (Ktor), `Settings` (multiplatform-settings), `DispatcherProvider` |
 | Domain interfaces (self) | The repository interface it implements — for type declaration only |
 | Kotlin / coroutines | `CoroutineScope`, `CoroutineDispatcher` |
 

@@ -16,7 +16,7 @@ The domain layer (`*/domain/`) must have **zero** framework imports:
 
 - **No DI**: No `org.koin.*`, no `dagger.*`, no `javax.inject.*`
 - **No networking**: No `io.ktor.*`
-- **No database**: No `app.cash.sqldelight.*`
+- **No persistence**: No `com.russhwolf.settings.*`
 - **No platform types**: No `android.*`, no `platform.Foundation.*`
 - **No serialization annotations**: No `@Serializable` on domain models (that belongs on DTOs in data layer)
 - Domain layer depends only on: Kotlin stdlib, kotlinx.coroutines, and other domain modules

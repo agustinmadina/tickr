@@ -1,6 +1,6 @@
 ---
 name: workload-planner
-description: "Use this agent when you need to plan a workload or feature implementation, break it down into structured subtasks, and automatically create a Linear ticket in the CORE project with child sub-tickets for better workload separation.\\n\\n<example>\\nContext: The user wants to plan and create Linear tickets for implementing a new authentication feature.\\nuser: \"I need to implement OAuth2 social login with Google and Apple for the app\"\\nassistant: \"I'll use the workload-planner agent to analyze the requirements, create a detailed implementation plan, and generate the corresponding Linear tickets.\"\\n<commentary>\\nSince the user wants to plan a workload and create Linear tickets, launch the workload-planner agent to break down the feature and create the ticket hierarchy.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: The user wants to plan a database migration and create tracking tickets.\\nuser: \"Plan out the migration of our user preferences from SharedPreferences to SQLDelight\"\\nassistant: \"Let me use the workload-planner agent to plan this migration and create the Linear tickets for tracking.\"\\n<commentary>\\nThe user needs workload planning and Linear ticket creation, so launch the workload-planner agent.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: The user describes a technical task and wants it tracked in Linear.\\nuser: \"I need to refactor the core-network module to support request interceptors\"\\nassistant: \"I'll launch the workload-planner agent to break this down into a plan and create the appropriate Linear tickets in the CORE project.\"\\n<commentary>\\nWorkload planning with Linear ticket creation needed — use the workload-planner agent.\\n</commentary>\\n</example>"
+description: "Use this agent when you need to plan a workload or feature implementation, break it down into structured subtasks, and automatically create a Linear ticket in the CORE project with child sub-tickets for better workload separation.\\n\\n<example>\\nContext: The user wants to plan and create Linear tickets for implementing a new authentication feature.\\nuser: \"I need to implement OAuth2 social login with Google and Apple for the app\"\\nassistant: \"I'll use the workload-planner agent to analyze the requirements, create a detailed implementation plan, and generate the corresponding Linear tickets.\"\\n<commentary>\\nSince the user wants to plan a workload and create Linear tickets, launch the workload-planner agent to break down the feature and create the ticket hierarchy.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: The user wants to plan a database migration and create tracking tickets.\\nuser: \"Plan out moving the portfolio from a serialised document to per-row storage\"\\nassistant: \"Let me use the workload-planner agent to plan this migration and create the Linear tickets for tracking.\"\\n<commentary>\\nThe user needs workload planning and Linear ticket creation, so launch the workload-planner agent.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: The user describes a technical task and wants it tracked in Linear.\\nuser: \"I need to refactor the core-network module to support request interceptors\"\\nassistant: \"I'll launch the workload-planner agent to break this down into a plan and create the appropriate Linear tickets in the CORE project.\"\\n<commentary>\\nWorkload planning with Linear ticket creation needed — use the workload-planner agent.\\n</commentary>\\n</example>"
 model: sonnet
 color: green
 memory: project
@@ -15,7 +15,7 @@ This is a KMP project using Compose Multiplatform targeting Android, iOS, and De
 - Domain layer: pure Kotlin only, no framework imports
 - Visibility: `internal` by default in feature modules
 - No `Dispatchers.IO` in commonMain
-- Use Koin for DI, Ktor for networking, SQLDelight for database, Coroutines/Flow for async
+- Use Koin for DI, Ktor for networking, multiplatform-settings for persistence, Coroutines/Flow for async
 
 ## Your Workflow
 
@@ -106,7 +106,6 @@ Suggested starting point: [TICKET-XXX] — [reason why this is first]
 - **Tests** can be bundled with the feature they test OR as a separate sub-ticket if substantial
 - **Breaking changes** to public APIs in shared/core/SDK modules must be flagged explicitly in the ticket description with a migration note
 - If a sub-task would require > 30 files or > 800 lines, split it further
-- For SQLDelight schema changes: always include a sub-ticket specifically for migration files
 - For new feature modules: the scaffold sub-ticket (using `/create-feature`) should always be first
 
 ## Tone & Style

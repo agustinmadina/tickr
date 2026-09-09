@@ -2,7 +2,6 @@ package dev.madina.tickr.feature.portfolio.ui
 
 import androidx.lifecycle.viewModelScope
 import dev.madina.tickr.core.ui.mvi.BaseViewModel
-import dev.madina.tickr.core.ui.theme.assetColor
 import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase

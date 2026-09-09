@@ -112,7 +112,7 @@ Evaluate the ticket against each criterion. Score each as PASS, WEAK, or MISSING
 Every question you ask must be:
 - **Specific** — Not "Can you clarify the requirements?" but "Should the biometric prompt appear on every app launch or only after session timeout?"
 - **Actionable** — The answer directly unblocks planning
-- **Bounded** — Offer 2-3 options when possible: "Should we (A) cache locally with SQLDelight, (B) use in-memory cache only, or (C) skip caching for v1?"
+- **Bounded** — Offer 2-3 options when possible: "Should we (A) persist this to the platform store, (B) keep it in memory only, or (C) skip persistence for v1?"
 - **Non-obvious** — Don't ask things that can be inferred from context or project conventions
 
 Do NOT ask questions about:
@@ -124,15 +124,15 @@ Do NOT ask questions about:
 
 This is a KMP project with modular clean architecture:
 - **Feature modules**: 4 Gradle sub-modules each (domain, data, ui, di)
-- **Core modules**: core-common, core-network, core-database, core-realtime, core-ui, core-navigation, core-domain
+- **Core modules**: core-common, core-network, core-storage, core-ui, core-domain
 - **Targets**: Android, iOS, Desktop
-- **Stack**: Compose Multiplatform, Koin, Ktor, SQLDelight, Coroutines & Flow
+- **Stack**: Compose Multiplatform, Koin, Ktor, multiplatform-settings, Coroutines & Flow
 
 You can assume:
 - DI will use Koin (don't ask)
 - UI will use Compose Multiplatform (don't ask)
 - New features follow the 4-sub-module pattern (don't ask)
-- Networking uses Ktor, database uses SQLDelight (don't ask)
+- Networking uses Ktor, persistence uses multiplatform-settings (don't ask)
 
 ## Integration with Workflow
 

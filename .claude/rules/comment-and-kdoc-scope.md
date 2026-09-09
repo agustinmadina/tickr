@@ -30,7 +30,7 @@ Out of scope — do not flag:
 - File-level and module-level KDoc (`@file:` targets, package-level docs) — no declaration visibility to check against
 - `expect` declarations — per `platform-parity.md`, platform-specific limitations are documented with KDoc on the `expect` declaration regardless of the containing module's default visibility
 - The narrow `suspend`-returning-`Flow` exception in `coroutine-thread-safety.md`, which requires a KDoc explaining why suspension at the call site is needed — even on an `internal` repository implementation
-- Test source sets (`commonTest`, `androidUnitTest`, `iosTest`, `desktopTest`) and `@Preview` composable files
+- Test source sets (`commonTest`, `androidHostTest`, `iosTest`, `wasmJsTest`) and `@Preview` composable files
 - Generated or scaffolded code not yet substantively edited (e.g. a `/create-feature` scaffold) — fix on first substantive edit, consistent with `repository-error-propagation.md`'s Existing Code treatment
 - Single-line inline `//` comments on local variables, private members, and code sections — never flagged for content or presence, only for change-history narration
 - A multi-line `//` block the developer has explicitly decided to keep, with that decision on record (PR description or review reply) — the flag exists to force the decision, not to override it

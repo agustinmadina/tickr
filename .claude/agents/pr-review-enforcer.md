@@ -203,7 +203,7 @@ Network | Cache | Realtime
 - UI layer importing from Data layer (e.g., importing DTOs, API services, repository implementations)
 - Domain layer having ANY dependencies (domain must have ZERO dependencies on other layers)
 - Data layer classes being exposed to UI (only domain interfaces/models should cross boundaries)
-- `core-network`, `core-database`, or `core-realtime` being used outside of `data/` layer
+- `core-network` or `core-storage` being used outside of `data/` layer
 - Feature modules directly depending on other feature modules' internal classes
 - Repository interfaces defined outside of `domain/` layer
 - Use cases containing framework-specific code
@@ -260,12 +260,6 @@ Each feature MUST be 4 separate Gradle sub-modules (not directories in a flat mo
 - `androidContext()` requires `koin-android` dep — use `get()` in core lib modules instead
 - Factory vs Single scoping used correctly
 
-### Step 5: SQLDelight Review (if applicable)
-
-- `core-database` is infrastructure-only (no SQLDelight plugin, no .sq files)
-- Feature modules own their own AppDatabase and .sq files
-- Use `INTEGER AS kotlin.Boolean` (NOT `AS Boolean`)
-- Schema injected via Koin: `single<SqlSchema<...>> { AppDatabase.Schema }`
 
 ### Step 6: Commit Convention Review
 

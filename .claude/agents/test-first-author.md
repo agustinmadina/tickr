@@ -152,7 +152,7 @@ internal class LoginUseCaseTest : BehaviorSpec({
 - Cover the happy path + every documented edge case from the plan + cancellation behaviour
 
 **Data tests** (`features/*/data/src/commonTest/`):
-- Test repository implementations against fake data sources / fake `HttpClient` (Ktor `MockEngine` via the shared helpers in `core-testing` — see `.claude/rules/mock-http-client-test-helpers.md`)
+- Test repository implementations against fake data sources / fake `HttpClient` (Ktor `MockEngine`, built in the test file — this project has no shared test-fixture module)
 - Verify mapping from `*Json`/`*Entity` → domain model
 - Verify error wrapping: API failures become `Result.failure`
 
@@ -161,19 +161,13 @@ internal class LoginUseCaseTest : BehaviorSpec({
 - Use fake use cases injected via constructor
 - Cover initial state, loading, success, error, and any effect emissions
 
-**Migration tests** (if the plan touches SQLDelight schema):
-- Verify data inserted before migration is readable after migration
-- Test the full migration chain from version 1 to the new version, not just the latest hop
-
 ### Step 5: Verify the red state
 
 Run the failing tests to confirm they fail for the right reason:
 
 ```bash
 # JVM/desktop is fastest and runs on all hosts
-./gradlew :features:feature-<name>:domain:desktopTest \
-          :features:feature-<name>:data:desktopTest \
-          :features:feature-<name>:ui:desktopTest
+./gradlew testAndroidHostTest
 ```
 
 Inspect the output and confirm:

@@ -17,7 +17,7 @@ You are an expert mobile architect specializing in Kotlin Multiplatform (KMP) de
 **Architecture Standards:**
 
 You enforce this exact module structure for KMP projects:
-1. **Core Modules** (infrastructure): core-common, core-network, core-database, core-realtime, core-ui, core-navigation, core-domain
+1. **Core Modules** (infrastructure): core-common, core-network, core-storage, core-ui, core-domain
 2. **Feature Modules** (4 Gradle sub-modules per feature — see below)
 3. **Identity Modules**: identity-domain, identity-data (session management, auth)
 4. **Shared Modules**: shared-domain (common models), shared-data (shared repositories)
@@ -45,7 +45,7 @@ Each sub-module has its own `build.gradle.kts` and is registered independently i
      └──→  di  ←──┘
 ```
 - **domain**: No framework deps. Only Kotlin stdlib + kotlinx.coroutines. No Compose, no Koin, no Ktor.
-- **data**: Depends on `:domain` + core infra (`core-data`, `core-database`, `core-network`). Has Koin for its own `DataModule`.
+- **data**: Depends on `:domain` + core infra (`core-storage`, `core-network`). Has Koin for its own `DataModule`.
 - **ui**: Depends on `:domain` + `core-ui`. Has Compose, lifecycle, Koin (for VM injection). Does NOT depend on `:data`.
 - **di**: Depends on all three siblings. Aggregates layer Koin modules. Only public export: the aggregated `featureModule` val.
 
@@ -61,7 +61,7 @@ Each sub-module has its own `build.gradle.kts` and is registered independently i
 
 **General dependency rules:**
 - UI only depends on Domain (enforced by Gradle — no `:data` dependency in `ui/build.gradle.kts`)
-- Domain has **zero** framework dependencies (no Koin, no Ktor, no SQLDelight)
+- Domain has **zero** framework dependencies (no Koin, no Ktor, no platform types)
 - Data layer implements Domain interfaces
 - DI wires everything together
 - No circular dependencies ever
@@ -72,7 +72,7 @@ Each sub-module has its own `build.gradle.kts` and is registered independently i
 - AGP 9.0 with com.android.kotlin.multiplatform.library plugin
 - Koin for dependency injection
 - Ktor for networking
-- SQLDelight for persistence
+- multiplatform-settings for persistence
 - Coroutines & Flow for async operations
 - Min Android SDK 24, Target SDK 36
 
@@ -149,7 +149,7 @@ in `.claude/rules/code-quality-checklist.md`. These rules are enforced by the PR
 agent and violations will block merge. Key points:
 
 - Use `internal` visibility on all implementation classes in feature/data modules
-- Domain layer: zero framework imports (no Koin, Ktor, SQLDelight)
+- Domain layer: zero framework imports (no Koin, Ktor, no platform types)
 - No `Dispatchers.IO`, `runBlocking`, `GlobalScope`, or `synchronized` in `commonMain`
 - No `!!` operator — use safe alternatives
 - Every `expect` needs `actual` for Android, iOS, and Desktop

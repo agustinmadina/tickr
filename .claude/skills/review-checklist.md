@@ -9,10 +9,10 @@ When reviewing, only flag genuine issues — skip categories not relevant to the
 | Check | Rule file | Severity |
 |---|---|---|
 | Clean architecture layers respected (UI -> Domain <- Data) | `code-quality-checklist.md` | Blocking |
-| Infrastructure modules (`core-network`, `core-database`, `core-realtime`) only in `data/` layer | `code-quality-checklist.md` | Blocking |
+| Infrastructure modules (`core-network`, `core-storage`) only in `data/` layer | `code-quality-checklist.md` | Blocking |
 | No circular dependencies between modules | `repository-dependency-boundaries.md` | Blocking |
 | Feature modules follow 4-layer structure (data, domain, ui, di) | `code-quality-checklist.md` | Blocking |
-| Domain layer has zero framework imports (no Koin, Ktor, SQLDelight, Android, Compose) | `code-quality-checklist.md` | Blocking |
+| Domain layer has zero framework imports (no Koin, Ktor, Android, Compose, platform types) | `code-quality-checklist.md` | Blocking |
 | Repositories never depend on other repositories | `repository-dependency-boundaries.md` | Blocking |
 | Data-layer classes never depend on use cases | `data-layer-use-case-prohibition.md` | Blocking |
 
@@ -144,7 +144,6 @@ When reviewing, only flag genuine issues — skip categories not relevant to the
 | Check | Rule file | Severity |
 |---|---|---|
 | No absolute paths in `.claude/` or `docs/` files | `no-absolute-paths-in-config.md` | Blocking |
-| SQLDelight migrations have `.sqm` files, are backwards-compatible | `sqldelight-migration-safety.md` | Blocking |
 | Breaking changes in SDK/shared/core public APIs are documented | `breaking-change-detection.md` | Suggestion |
 | PR is single-purpose and within size guidelines | `pr-size-scope.md` | Suggestion |
 | PR title and body carry the Linear ticket ID and its acceptance criteria | `pr-uses-ticket-data.md` | Blocking |

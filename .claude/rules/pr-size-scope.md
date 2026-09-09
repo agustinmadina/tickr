@@ -25,7 +25,7 @@ PRs should be small, focused, and address a single concern. Large or mixed-scope
 - **> 800 lines changed**: Strongly recommend splitting
 
 ### Exceptions (large PRs that are acceptable)
-- Auto-generated code (scaffolding via `/create-feature`, generated SQLDelight code)
+- Auto-generated code (scaffolding via `/create-feature`, generated Compose resource accessors)
 - Codebase-wide renames or formatting changes (single mechanical concern)
 - New module creation with boilerplate structure (4-layer scaffold)
 - Version catalog updates that touch many `build.gradle.kts` files
