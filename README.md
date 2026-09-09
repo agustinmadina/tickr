@@ -31,7 +31,9 @@ Coinbase over a WebSocket.
 </p>
 
 <p align="center">
-  <em>Android and iOS. Not a shared design system rendered twice: one implementation, two runtimes.</em>
+  <em>Android and iOS, captured at the same second. Not a shared design system rendered twice: one
+  implementation, two runtimes. The totals differ by cents because these are two independent live
+  connections, not one screenshot pasted twice.</em>
 </p>
 
 <p align="center">
@@ -201,9 +203,11 @@ Every push runs formatting, tests and the three builds:
 ./gradlew testAndroidHostTest # Kotest specs
 ```
 
-The specs cover the parts where being wrong is expensive and invisible: money arithmetic with an
-unpriced holding, a zero cost basis, resubscribing the feed when holdings change, and search
-ranking.
+**52 specs**, covering the parts where being wrong is expensive and invisible: money arithmetic
+with an unpriced holding, a zero cost basis, recovering yesterday's price from a percentage,
+resubscribing the feed when holdings change, persistence surviving a restart, and search ranking.
+
+Several of them exist because a defect got through first and the spec was written to keep it out.
 
 ## Built with an AI workflow, deliberately
 
@@ -257,10 +261,7 @@ open iosApp/iosApp.xcodeproj                   # iOS, then run from Xcode
 
 The portfolio persists across restarts on all three platforms, so what you add stays added.
 
-**Why not SQLDelight**, which is the usual answer here and the one this README used to promise: it
-has no maintained driver for wasm, and the web target is the point of the project. Adding a
-dependency that works on two platforms out of three would have traded the interesting half of the
-demo for a nicer line in the stack table. A portfolio is also a handful of rows, read whole and
-written whole, with no queries, no joins and no migrations, so a serialised document in each
-platform's own key-value store is the proportionate choice rather than a compromise: SharedPreferences,
-NSUserDefaults, localStorage, behind one `expect`/`actual`.
+**Not SQLDelight**, which has no maintained wasm driver, and the web target is the point here. A
+portfolio is a handful of rows read and written whole, so a serialised document in each platform's
+own store is proportionate: SharedPreferences, NSUserDefaults, localStorage, behind one
+`expect`/`actual`.
