@@ -67,6 +67,7 @@ fun PortfolioRoot(modifier: Modifier = Modifier) {
 
                     is PortfolioDestination.Detail -> HoldingDetailScreen(
                         holding = state.selectedHolding,
+                        scrubIndex = state.scrubIndex,
                         onAction = viewModel::onAction,
                     )
                 }

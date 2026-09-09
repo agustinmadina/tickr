@@ -30,7 +30,15 @@ internal class PortfolioViewModel(
                         totalValue = portfolio.totalValue,
                         totalProfit = portfolio.totalProfit,
                         totalReturnPercent = portfolio.totalReturnPercent,
-                        totalHistory = previous.totalHistory.append(portfolio.totalValue),
+                        // Only once something is actually priced. Before the first quote the total
+                        // is zero, and recording that put a sample on the floor: the chart then
+                        // opened with a vertical climb out of nothing, which is not a movement the
+                        // portfolio ever made.
+                        totalHistory = if (portfolio.totalValue > 0) {
+                            previous.totalHistory.append(portfolio.totalValue)
+                        } else {
+                            previous.totalHistory
+                        },
                         isPartiallyPriced = portfolio.isPartiallyPriced,
                         isLoading = false,
                     )
@@ -46,11 +54,16 @@ internal class PortfolioViewModel(
 
     override fun onAction(action: PortfolioAction) {
         when (action) {
+            // Both screens have a chart and share the scrub index, since only one is ever visible.
+            // Clearing it on navigation stops the marker from arriving already placed on the next
+            // chart, which has an unrelated series behind it.
             is PortfolioAction.HoldingClicked ->
-                updateState { it.copy(destination = PortfolioDestination.Detail(action.symbol)) }
+                updateState {
+                    it.copy(destination = PortfolioDestination.Detail(action.symbol), scrubIndex = null)
+                }
 
             PortfolioAction.BackClicked ->
-                updateState { it.copy(destination = PortfolioDestination.Overview) }
+                updateState { it.copy(destination = PortfolioDestination.Overview, scrubIndex = null) }
 
             PortfolioAction.AddClicked ->
                 updateState { it.copy(isAddSheetVisible = true) }
@@ -63,11 +76,18 @@ internal class PortfolioViewModel(
             is PortfolioAction.RemoveClicked -> remove(action.symbol)
 
             is PortfolioAction.Scrubbed -> updateState { state ->
-                // coerceIn over an empty range throws, and the history is empty until the first
-                // quote lands, which is exactly when a stray pointer event can arrive.
+                // Clamped against whichever series is on screen: the two charts hold a different
+                // number of samples, so bounding the detail's index by the overview's would land
+                // the marker on the wrong point.
+                val series = when (state.destination) {
+                    PortfolioDestination.Overview -> state.totalHistory
+                    is PortfolioDestination.Detail -> state.selectedHolding?.history.orEmpty()
+                }
+                // coerceIn over an empty range throws, and a series is empty until its first quote
+                // lands, which is exactly when a stray pointer event can arrive.
                 val index = action.index
-                    ?.takeIf { state.totalHistory.isNotEmpty() }
-                    ?.coerceIn(0, state.totalHistory.lastIndex)
+                    ?.takeIf { series.isNotEmpty() }
+                    ?.coerceIn(0, series.lastIndex)
                 state.copy(scrubIndex = index)
             }
 

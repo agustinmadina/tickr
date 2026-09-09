@@ -3,7 +3,10 @@ package dev.madina.tickr.core.ui.component
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -54,14 +57,31 @@ fun InteractiveLineChart(
     Canvas(
         modifier = modifier
             .pointerInput(points.size) {
-                detectHorizontalDragGestures(
-                    onDragStart = { offset -> onScrub(indexAt(offset.x, size.width, points.size)) },
-                    onDragEnd = { onScrub(null) },
-                    onDragCancel = { onScrub(null) },
-                    onHorizontalDrag = { change, _ ->
-                        onScrub(indexAt(change.position.x, size.width, points.size))
-                    },
-                )
+                awaitEachGesture {
+                    // Report on the touch down itself, before any movement. A drag detector only
+                    // fires once the finger has travelled past the touch slop, so the marker
+                    // appeared a few millimetres late and the chart read as unresponsive: you had
+                    // to already know it was interactive to discover that it was.
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    onScrub(indexAt(down.position.x, size.width, points.size))
+
+                    // The down is deliberately not consumed, so a vertical swipe still reaches the
+                    // list underneath. Only once the gesture proves itself horizontal do we claim
+                    // it; until then the scroll wins and the marker is dismissed.
+                    val slopChange = awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ ->
+                        change.consume()
+                    }
+
+                    if (slopChange == null) {
+                        onScrub(null)
+                    } else {
+                        horizontalDrag(slopChange.id) { change ->
+                            onScrub(indexAt(change.position.x, size.width, points.size))
+                            change.consume()
+                        }
+                        onScrub(null)
+                    }
+                }
             }
             .pointerInput(points.size) {
                 awaitPointerEventScope {

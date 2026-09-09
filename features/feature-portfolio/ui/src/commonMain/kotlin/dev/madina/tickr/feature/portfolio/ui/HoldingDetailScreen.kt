@@ -28,8 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import dev.madina.tickr.core.ui.component.AnimatedAmount
+import dev.madina.tickr.core.ui.component.BackChevron
+import dev.madina.tickr.core.ui.component.InteractiveLineChart
 import dev.madina.tickr.core.ui.component.LiveDot
-import dev.madina.tickr.core.ui.component.Sparkline
 import dev.madina.tickr.core.ui.format.formatPercent
 import dev.madina.tickr.core.ui.format.formatPrice
 import dev.madina.tickr.core.ui.format.formatQuantity
@@ -47,6 +48,7 @@ import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
 @Composable
 internal fun HoldingDetailScreen(
     holding: HoldingUi?,
+    scrubIndex: Int?,
     onAction: (PortfolioAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -60,7 +62,9 @@ internal fun HoldingDetailScreen(
                 .padding(WindowInsets.safeDrawing.asPaddingValues()),
         ) {
             TextButton(onClick = { onAction(PortfolioAction.BackClicked) }) {
-                Text(text = "← Back", style = MaterialTheme.typography.labelLarge)
+                BackChevron(color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(Spacing.Small))
+                Text(text = "Back", style = MaterialTheme.typography.labelLarge)
             }
 
             // The holding can vanish while its detail is open, if it is removed from another
@@ -74,6 +78,8 @@ internal fun HoldingDetailScreen(
                 )
                 return@Column
             }
+
+            val scrubbedPrice = scrubIndex?.let { holding.history.getOrNull(it)?.toDouble() }
 
             Spacer(Modifier.height(Spacing.Large))
 
@@ -89,27 +95,43 @@ internal fun HoldingDetailScreen(
 
             Spacer(Modifier.height(Spacing.Small))
 
-            holding.price?.let { price ->
-                AnimatedAmount(
-                    value = price,
-                    format = { it.formatPrice() },
-                    style = MaterialTheme.typography.displayMedium,
-                )
-            }
-
-            holding.changePercent24h?.let { change ->
+            if (scrubbedPrice != null) {
+                // Direct, not animated: while the pointer moves, a count animation per sample would
+                // trail behind the finger instead of tracking it.
                 Text(
-                    text = "${change.formatPercent()} today",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (change >= 0) Positive else Negative,
+                    text = scrubbedPrice.formatPrice(),
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
+                Text(
+                    text = "at this point",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = TextSecondary,
+                )
+            } else {
+                holding.price?.let { price ->
+                    AnimatedAmount(
+                        value = price,
+                        format = { it.formatPrice() },
+                        style = MaterialTheme.typography.displayMedium,
+                    )
+                }
+                holding.changePercent24h?.let { change ->
+                    Text(
+                        text = "${change.formatPercent()} today",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (change >= 0) Positive else Negative,
+                    )
+                }
             }
 
             Spacer(Modifier.height(Spacing.ExtraLarge))
 
-            Sparkline(
+            InteractiveLineChart(
                 points = holding.history,
                 color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
+                scrubIndex = scrubIndex,
+                onScrub = { index -> onAction(PortfolioAction.Scrubbed(index)) },
                 modifier = Modifier.fillMaxWidth().height(Sizing.DetailChartHeight),
             )
 
@@ -171,4 +193,5 @@ private fun DetailRow(
     }
 }
 
-private const val Pending = "—"
+/** ASCII on purpose: an em dash is another glyph the web build's bundled font may not carry. */
+private const val Pending = "--"

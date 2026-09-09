@@ -86,8 +86,9 @@ internal fun HoldingCard(
                     )
                 } else {
                     // A position whose price has not arrived reads as pending, not as worth zero.
+                    // ASCII on purpose: the web build's bundled font has no em dash.
                     Text(
-                        text = "—",
+                        text = "--",
                         style = MaterialTheme.typography.titleMedium,
                         color = TextSecondary,
                     )
