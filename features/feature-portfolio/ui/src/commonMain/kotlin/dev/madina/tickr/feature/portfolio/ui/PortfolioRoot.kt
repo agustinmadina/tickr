@@ -109,7 +109,7 @@ private fun SinglePaneLayout(
             is PortfolioDestination.Detail ->
                 HoldingDetailScreen(
                     holding = state.selectedHolding,
-                    scrubIndex = state.scrubIndex,
+                    scrubIndex = state.detailScrubIndex,
                     onAction = onAction,
                 )
         }
@@ -138,7 +138,7 @@ private fun TwoPaneLayout(
             } else {
                 HoldingDetailScreen(
                     holding = state.selectedHolding,
-                    scrubIndex = state.scrubIndex,
+                    scrubIndex = state.detailScrubIndex,
                     onAction = onAction,
                     // Nothing to go back to: the list is right there on the left.
                     showBack = false,

@@ -86,8 +86,12 @@ internal fun OverviewScreen(
                             // falling session green because the position is up over its lifetime
                             // makes the chart contradict the line it draws.
                             color = if (state.sessionChange >= 0) Positive else Negative,
-                            scrubIndex = state.scrubIndex,
-                            onScrub = { index -> onAction(PortfolioAction.Scrubbed(index)) },
+                            scrubIndex = state.overviewScrubIndex,
+                            onScrub = { index ->
+                                onAction(
+                                    PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, index),
+                                )
+                            },
                             modifier =
                                 Modifier
                                     .fillMaxWidth()

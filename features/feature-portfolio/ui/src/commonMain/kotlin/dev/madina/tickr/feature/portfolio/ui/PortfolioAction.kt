@@ -38,8 +38,15 @@ sealed interface PortfolioAction {
         val symbol: String,
     ) : PortfolioAction
 
+    /**
+     * Which chart the pointer is on, because in the two pane layout both are on screen at once and
+     * a single shared index made hovering one of them mark the other too.
+     */
+    enum class Chart { Overview, Detail }
+
     /** Index of the chart sample being pointed at, or null when the pointer leaves. */
     data class Scrubbed(
+        val chart: Chart,
         val index: Int?,
     ) : PortfolioAction
 

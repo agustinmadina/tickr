@@ -157,7 +157,7 @@ internal fun HoldingDetailScreen(
                 points = holding.history,
                 color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
                 scrubIndex = scrubIndex,
-                onScrub = { index -> onAction(PortfolioAction.Scrubbed(index)) },
+                onScrub = { index -> onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Detail, index)) },
                 modifier = Modifier.fillMaxWidth().height(Sizing.DetailChartHeight),
             )
 

@@ -67,7 +67,7 @@ internal class PortfolioViewModelSpec :
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
 
-                        viewModel.onAction(PortfolioAction.Scrubbed(0))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, 0))
 
                         val state = viewModel.state.value
                         state.isScrubbing shouldBe true
@@ -79,9 +79,9 @@ internal class PortfolioViewModelSpec :
                     runTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
-                        viewModel.onAction(PortfolioAction.Scrubbed(0))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, 0))
 
-                        viewModel.onAction(PortfolioAction.Scrubbed(null))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, null))
 
                         viewModel.state.value.isScrubbing shouldBe false
                     }
@@ -92,23 +92,39 @@ internal class PortfolioViewModelSpec :
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
 
-                        viewModel.onAction(PortfolioAction.Scrubbed(9_999))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, 9_999))
 
-                        viewModel.state.value.scrubIndex shouldBe viewModel.state.value.totalHistory.lastIndex
+                        viewModel.state.value.overviewScrubIndex shouldBe viewModel.state.value.totalHistory.lastIndex
                     }
                 }
             }
 
-            When("the user opens an asset while pointing at the chart") {
-                Then("the scrub is cleared, since the next chart holds a different series") {
+            When("the user opens an asset while pointing at the overview chart") {
+                Then("the overview marker stays, since that chart never left the screen") {
                     runTest {
                         val viewModel = viewModel()
                         viewModel.state.first { it.totalHistory.isNotEmpty() }
-                        viewModel.onAction(PortfolioAction.Scrubbed(0))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, 0))
 
                         viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
 
-                        viewModel.state.value.scrubIndex
+                        // It used to be cleared, back when a single index was shared by both
+                        // charts. In the two pane layout the overview is still visible after
+                        // opening an asset, so clearing it would wipe a marker the user can see.
+                        viewModel.state.value.overviewScrubIndex shouldBe 0
+                    }
+                }
+
+                Then("the detail's own marker is cleared, since it pointed into another series") {
+                    runTest {
+                        val viewModel = viewModel()
+                        viewModel.state.first { it.holdings.isNotEmpty() }
+                        viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Detail, 0))
+
+                        viewModel.onAction(PortfolioAction.BackClicked)
+
+                        viewModel.state.value.detailScrubIndex
                             .shouldBeNull()
                     }
                 }
@@ -123,7 +139,7 @@ internal class PortfolioViewModelSpec :
                         viewModel.state.first { it.holdings.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
 
-                        viewModel.onAction(PortfolioAction.Scrubbed(0))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Detail, 0))
 
                         val state = viewModel.state.value
                         state.selectedHolding.shouldNotBeNull()
@@ -131,15 +147,32 @@ internal class PortfolioViewModelSpec :
                     }
                 }
 
-                Then("the scrub index survives, so the detail can render the point") {
+                Then("only the detail's marker moves, not the overview's") {
                     runTest {
                         val viewModel = viewModel()
-                        viewModel.state.first { it.holdings.isNotEmpty() }
+                        viewModel.state.first { it.totalHistory.isNotEmpty() }
                         viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
 
-                        viewModel.onAction(PortfolioAction.Scrubbed(0))
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Detail, 0))
 
-                        viewModel.state.value.scrubIndex shouldBe 0
+                        val state = viewModel.state.value
+                        state.detailScrubIndex shouldBe 0
+                        // Both charts are on screen together in the two pane layout, so a shared
+                        // index marked whichever one the pointer was not on.
+                        state.overviewScrubIndex.shouldBeNull()
+                    }
+                }
+
+                Then("pointing at the overview does not mark the detail either") {
+                    runTest {
+                        val viewModel = viewModel()
+                        viewModel.state.first { it.totalHistory.isNotEmpty() }
+                        viewModel.onAction(PortfolioAction.HoldingClicked("BTC"))
+
+                        viewModel.onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Overview, 0))
+
+                        viewModel.state.value.detailScrubIndex
+                            .shouldBeNull()
                     }
                 }
             }

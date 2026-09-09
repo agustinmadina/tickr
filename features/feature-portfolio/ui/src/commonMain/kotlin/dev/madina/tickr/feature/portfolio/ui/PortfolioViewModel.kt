@@ -76,16 +76,21 @@ internal class PortfolioViewModel(
 
     override fun onAction(action: PortfolioAction) {
         when (action) {
-            // Both screens have a chart and share the scrub index, since only one is ever visible.
-            // Clearing it on navigation stops the marker from arriving already placed on the next
-            // chart, which has an unrelated series behind it.
+            // Only the detail's scrub is cleared: it points into the series of whichever asset is
+            // open, so it means nothing once a different one is. The overview's chart does not
+            // change, and in the two pane layout it stays on screen throughout.
             is PortfolioAction.HoldingClicked ->
                 updateState {
-                    it.copy(destination = PortfolioDestination.Detail(action.symbol), scrubIndex = null)
+                    it.copy(
+                        destination = PortfolioDestination.Detail(action.symbol),
+                        detailScrubIndex = null,
+                    )
                 }
 
             PortfolioAction.BackClicked ->
-                updateState { it.copy(destination = PortfolioDestination.Overview, scrubIndex = null) }
+                updateState {
+                    it.copy(destination = PortfolioDestination.Overview, detailScrubIndex = null)
+                }
 
             PortfolioAction.AddClicked -> {
                 updateState { it.copy(isAddSheetVisible = true) }
@@ -127,21 +132,25 @@ internal class PortfolioViewModel(
 
             is PortfolioAction.Scrubbed ->
                 updateState { state ->
-                    // Clamped against whichever series is on screen: the two charts hold a different
-                    // number of samples, so bounding the detail's index by the overview's would land
-                    // the marker on the wrong point.
+                    // Clamped against the series the pointer is actually on. The two charts hold a
+                    // different number of samples, so one shared index would land the marker on the
+                    // wrong point even before the two pane layout showed both at once.
                     val series =
-                        when (state.destination) {
-                            PortfolioDestination.Overview -> state.totalHistory
-                            is PortfolioDestination.Detail -> state.selectedHolding?.history.orEmpty()
+                        when (action.chart) {
+                            PortfolioAction.Chart.Overview -> state.totalHistory
+                            PortfolioAction.Chart.Detail -> state.selectedHolding?.history.orEmpty()
                         }
-                    // coerceIn over an empty range throws, and a series is empty until its first quote
-                    // lands, which is exactly when a stray pointer event can arrive.
+                    // coerceIn over an empty range throws, and a series is empty until its first
+                    // quote lands, which is exactly when a stray pointer event can arrive.
                     val index =
                         action.index
                             ?.takeIf { series.isNotEmpty() }
                             ?.coerceIn(0, series.lastIndex)
-                    state.copy(scrubIndex = index)
+
+                    when (action.chart) {
+                        PortfolioAction.Chart.Overview -> state.copy(overviewScrubIndex = index)
+                        PortfolioAction.Chart.Detail -> state.copy(detailScrubIndex = index)
+                    }
                 }
 
             PortfolioAction.ErrorDismissed ->
