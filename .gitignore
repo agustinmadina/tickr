@@ -1,0 +1,16 @@
+.gradle/
+build/
+local.properties
+.kotlin/
+.idea/
+*.iml
+.DS_Store
+
+# Kotlin/JS + wasm
+kotlin-js-store/
+node_modules/
+
+# Xcode
+xcuserdata/
+*.xcworkspace/xcuserdata/
+iosApp/Pods/

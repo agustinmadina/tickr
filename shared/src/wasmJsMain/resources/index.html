@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0B0D10">
+    <meta name="description" content="Tickr — a Kotlin Multiplatform crypto portfolio with live prices, running from the same code on Android, iOS and the web.">
+    <title>Tickr</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #0B0D10;
+            overscroll-behavior: none;
+        }
+        #loader {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8A94A6;
+            font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            letter-spacing: 1.5px;
+        }
+    </style>
+</head>
+<body>
+<div id="loader">LOADING</div>
+<script type="application/javascript" src="tickr.js"></script>
+</body>
+</html>
