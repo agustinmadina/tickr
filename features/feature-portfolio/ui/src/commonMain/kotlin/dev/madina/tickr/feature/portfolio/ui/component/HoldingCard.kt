@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.madina.tickr.core.ui.component.AnimatedAmount
 import dev.madina.tickr.core.ui.component.LiveDot
@@ -62,19 +63,24 @@ internal fun HoldingCard(
 
             Spacer(Modifier.width(Spacing.Medium))
 
-            // No weight on the label column: a weight reserves its share of the row whatever the
-            // text measures, and with symbols this short that left a gap between the name and the
-            // start of the line. The chart takes the leftover space instead.
-            Column {
+            // Fixed width, not weight and not wrap. A weight reserved half the row and left a gap
+            // before the line; wrapping made every chart start wherever its own label happened to
+            // end, so "0.241 BTC" and "940 XRP" pushed their charts to different places and the
+            // column of lines looked ragged. A fixed width lines them all up.
+            Column(modifier = Modifier.width(LabelColumnWidth)) {
                 Text(
                     text = holding.symbol,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = "${holding.quantity.formatQuantity()} ${holding.symbol}",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
@@ -91,6 +97,7 @@ internal fun HoldingCard(
             Spacer(Modifier.width(Spacing.Medium))
 
             Column(
+                modifier = Modifier.width(AmountColumnWidth),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(Spacing.ExtraSmall / 2),
             ) {
@@ -133,4 +140,8 @@ internal fun HoldingCard(
 }
 
 private val SelectionBorderWidth = 1.dp
+
+/** Fixed so every row's chart starts and ends on the same vertical line. */
+private val LabelColumnWidth = 92.dp
+private val AmountColumnWidth = 108.dp
 private val SparklineHeight = Sizing.SparklineHeight / 2
