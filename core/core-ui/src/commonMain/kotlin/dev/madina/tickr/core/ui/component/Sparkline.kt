@@ -3,6 +3,7 @@ package dev.madina.tickr.core.ui.component
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -27,7 +28,13 @@ fun Sparkline(
     modifier: Modifier = Modifier,
     filled: Boolean = true,
 ) {
-    if (points.size < MinimumPoints) return
+    // Still occupies its space when there is nothing to draw. Returning outright emitted no node at
+    // all, so the caller's `weight` vanished and every row without a line yet laid itself out
+    // differently: amounts drifted to the middle until the first two quotes arrived.
+    if (points.size < MinimumPoints) {
+        Spacer(modifier)
+        return
+    }
 
     val appear by animateFloatAsState(
         targetValue = 1f,

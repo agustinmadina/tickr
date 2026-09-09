@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.horizontalDrag
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -42,7 +43,11 @@ fun InteractiveLineChart(
     onScrub: (Int?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (points.size < MinimumPoints) return
+    // Same reason as Sparkline: emitting nothing would drop the caller's sizing along with it.
+    if (points.size < MinimumPoints) {
+        Spacer(modifier)
+        return
+    }
 
     val appear by animateFloatAsState(
         targetValue = 1f,

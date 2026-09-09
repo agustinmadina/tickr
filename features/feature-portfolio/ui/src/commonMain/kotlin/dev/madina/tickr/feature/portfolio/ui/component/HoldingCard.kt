@@ -90,11 +90,9 @@ internal fun HoldingCard(
                 modifier =
                     Modifier
                         .weight(1f)
-                        .padding(horizontal = Spacing.Medium)
+                        .padding(horizontal = Spacing.Small)
                         .height(SparklineHeight),
             )
-
-            Spacer(Modifier.width(Spacing.Medium))
 
             Column(
                 modifier = Modifier.width(AmountColumnWidth),
@@ -102,11 +100,16 @@ internal fun HoldingCard(
                 verticalArrangement = Arrangement.spacedBy(Spacing.ExtraSmall / 2),
             ) {
                 if (holding.value != null) {
+                    // No directional tint, for the same reason the headline lost it: this figure
+                    // sat red for the last downtick while the percentage beside it read green for
+                    // the day, and three rows doing that at once looks like a broken screen. The
+                    // pulsing dot and the moving line already say the data is live.
                     AnimatedAmount(
                         value = holding.value,
                         format = { it.formatUsd() },
                         style = MaterialTheme.typography.titleMedium,
                         baseColor = MaterialTheme.colorScheme.onSurface,
+                        flashOnChange = false,
                     )
                 } else {
                     // A position whose price has not arrived reads as pending, not as worth zero.
@@ -141,7 +144,11 @@ internal fun HoldingCard(
 
 private val SelectionBorderWidth = 1.dp
 
-/** Fixed so every row's chart starts and ends on the same vertical line. */
-private val LabelColumnWidth = 92.dp
-private val AmountColumnWidth = 108.dp
+/**
+ * Fixed so every row's chart starts and ends on the same vertical line, and kept tight: whatever
+ * these two reserve is taken from the chart between them, which was left with barely a third of the
+ * row. Sized for the widest real content, "10,000 DOGE" and a five figure amount.
+ */
+private val LabelColumnWidth = 86.dp
+private val AmountColumnWidth = 100.dp
 private val SparklineHeight = Sizing.SparklineHeight / 2
