@@ -37,11 +37,21 @@ Coinbase over a WebSocket.
 </p>
 
 <p align="center">
+  <img src="docs/screenshots/web-two-pane.png" width="760" alt="Tickr running in a browser at agustinmadina.github.io/tickr">
+</p>
+
+<p align="center">
+  <em>And the same screens in a browser, at the address in the bar. Not a port and not a web
+  rewrite: that is Kotlin compiled to WebAssembly, drawing the same Compose UI.</em>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/ipad-two-pane.png" width="560" alt="Tickr on iPad, two pane layout">
 </p>
 
 <p align="center">
-  <em>Past 840dp the same state lays itself out as two panes, on a tablet or in a browser window.</em>
+  <em>Past 840dp the same state lays itself out as two panes, on a tablet or in a browser window.
+  One destination in the ViewModel drives both, so there is no second navigation graph.</em>
 </p>
 
 ---
