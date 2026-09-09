@@ -21,6 +21,23 @@ data class ValuedHolding(
     /** Profit as a percentage of what was paid. Null when unpriced, or when the cost basis is zero. */
     val returnPercent: Double? =
         if (cost == 0.0) null else profit?.div(cost)?.times(PERCENT)
+
+    /**
+     * What this position was worth 24 hours ago, derived from the price and its daily change.
+     *
+     * The feed sends today's move as a percentage rather than yesterday's price, so it is recovered
+     * by dividing it out. A change of exactly -100% would mean the asset went to zero and leaves
+     * nothing to divide by, so that case yields null rather than an infinity that would poison the
+     * portfolio total.
+     */
+    val valueYesterday: Double? =
+        price?.let { tick ->
+            val factor = 1 + (tick.changePercent24h / PERCENT)
+            if (factor <= 0) null else holding.quantity * (tick.price / factor)
+        }
+
+    val dayChange: Double? =
+        if (value == null || valueYesterday == null) null else value - valueYesterday
 }
 
 data class Portfolio(
@@ -35,6 +52,20 @@ data class Portfolio(
 
     val totalReturnPercent: Double? =
         if (totalCost == 0.0) null else totalProfit / totalCost * PERCENT
+
+    private val totalValueYesterday: Double = holdings.sumOf { it.valueYesterday ?: 0.0 }
+
+    /**
+     * How much the whole portfolio moved today.
+     *
+     * This is the number people look for first in a finance app, and the one that is comparable
+     * with the per-row percentages. Return against cost answers a different question, over a
+     * different span, and depends on what the user typed in rather than on the market.
+     */
+    val dayChange: Double = totalValue - totalValueYesterday
+
+    val dayChangePercent: Double? =
+        if (totalValueYesterday == 0.0) null else dayChange / totalValueYesterday * PERCENT
 
     /** True while any holding is still waiting for its first quote, so the UI can say the total is partial. */
     val isPartiallyPriced: Boolean = holdings.any { it.price == null }

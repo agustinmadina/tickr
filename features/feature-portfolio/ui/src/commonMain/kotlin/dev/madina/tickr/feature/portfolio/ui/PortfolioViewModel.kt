@@ -39,6 +39,8 @@ internal class PortfolioViewModel(
                         totalValue = portfolio.totalValue,
                         totalProfit = portfolio.totalProfit,
                         totalReturnPercent = portfolio.totalReturnPercent,
+                        dayChange = portfolio.dayChange,
+                        dayChangePercent = portfolio.dayChangePercent,
                         // Only once every holding has a price. Quotes arrive one asset at a time,
                         // so the first few totals are partial sums, and charting them drew a
                         // vertical climb out of nothing while the feed filled in. A point on this

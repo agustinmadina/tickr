@@ -22,6 +22,9 @@ data class PortfolioUiState(
     val totalValue: Double = 0.0,
     val totalProfit: Double = 0.0,
     val totalReturnPercent: Double? = null,
+    /** Today's move across the whole portfolio, the headline figure. */
+    val dayChange: Double = 0.0,
+    val dayChangePercent: Double? = null,
     /** Value of the whole portfolio over time, one sample per update, for the header chart. */
     val totalHistory: ImmutableList<Float> = persistentListOf(),
     /**

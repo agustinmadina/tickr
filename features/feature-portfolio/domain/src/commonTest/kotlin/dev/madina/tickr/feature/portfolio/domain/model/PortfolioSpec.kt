@@ -94,6 +94,67 @@ internal class PortfolioSpec :
             }
         }
 
+        Given("a holding that rose 25% today") {
+            When("today's move is read") {
+                val valued =
+                    ValuedHolding(
+                        holding = Holding(symbol = "BTC", name = "Bitcoin", quantity = 2.0, averageCost = 1.0),
+                        price = PriceTick(symbol = "BTC", price = 125.0, changePercent24h = 25.0),
+                    )
+
+                Then("yesterday's value is recovered by dividing the change out") {
+                    valued.valueYesterday!! shouldBe (200.0 plusOrMinus TOLERANCE)
+                }
+
+                Then("the day change is the difference, not the percentage of today's price") {
+                    valued.dayChange!! shouldBe (50.0 plusOrMinus TOLERANCE)
+                }
+            }
+        }
+
+        Given("an asset that lost all of its value today") {
+            When("yesterday's value is read") {
+                val valued =
+                    ValuedHolding(
+                        holding = Holding(symbol = "ZZZ", name = "Gone", quantity = 1.0, averageCost = 1.0),
+                        price = PriceTick(symbol = "ZZZ", price = 0.0, changePercent24h = -100.0),
+                    )
+
+                Then("it is unknown rather than infinite, which would poison the portfolio total") {
+                    valued.valueYesterday.shouldBeNull()
+                    valued.dayChange.shouldBeNull()
+                }
+            }
+        }
+
+        Given("a portfolio of two holdings moving in opposite directions today") {
+            When("the day change is read") {
+                val portfolio =
+                    Portfolio(
+                        holdings =
+                            listOf(
+                                ValuedHolding(
+                                    holding = Holding("BTC", "Bitcoin", quantity = 1.0, averageCost = 1.0),
+                                    price = PriceTick("BTC", price = 110.0, changePercent24h = 10.0),
+                                ),
+                                ValuedHolding(
+                                    holding = Holding("ETH", "Ethereum", quantity = 1.0, averageCost = 1.0),
+                                    price = PriceTick("ETH", price = 90.0, changePercent24h = -10.0),
+                                ),
+                            ),
+                    )
+
+                Then("the moves net off against each other") {
+                    // 100 -> 110 is +10, and 100 -> 90 is -10, so the portfolio is flat in money.
+                    portfolio.dayChange shouldBe (0.0 plusOrMinus TOLERANCE)
+                }
+
+                Then("the percentage is against yesterday's total, not an average of the two") {
+                    portfolio.dayChangePercent!! shouldBe (0.0 plusOrMinus TOLERANCE)
+                }
+            }
+        }
+
         Given("an empty portfolio") {
             When("the totals are read") {
                 val portfolio = Portfolio(holdings = emptyList())

@@ -224,18 +224,18 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 color = if (scrubbedChange >= 0) Positive else Negative,
             )
         } else {
-            // Labelled "all time" because the rows underneath show the 24 hour move. Unlabelled,
-            // a +21% here next to four red rows reads as a bug rather than as two different
-            // measures: this one is against what you paid, those are against yesterday.
+            // Today first. It is what a reader looks for, it is the same measure as the per-row
+            // percentages underneath, and unlike return against cost it depends on the market
+            // rather than on a number the user typed in.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AnimatedAmount(
-                    value = state.totalProfit,
+                    value = state.dayChange,
                     format = { it.formatSignedUsd() },
                     style = MaterialTheme.typography.titleMedium,
-                    baseColor = if (state.totalProfit >= 0) Positive else Negative,
+                    baseColor = if (state.dayChange >= 0) Positive else Negative,
                     flashOnChange = false,
                 )
-                state.totalReturnPercent?.let { percent ->
+                state.dayChangePercent?.let { percent ->
                     Spacer(Modifier.width(Spacing.Small))
                     Text(
                         text = "(${percent.formatPercent()})",
@@ -245,8 +245,21 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 }
                 Spacer(Modifier.width(Spacing.Small))
                 Text(
-                    text = "all time",
+                    text = "today",
                     style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                )
+            }
+
+            // Return against cost is demoted to a second line and named after its reference, since
+            // "all time" still did not say all time against what.
+            state.totalReturnPercent?.let { percent ->
+                Spacer(Modifier.height(Spacing.ExtraSmall))
+                Text(
+                    text =
+                        "${state.totalProfit.formatSignedUsd()} (${percent.formatPercent()}) " +
+                            "vs what you paid",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary,
                 )
             }
