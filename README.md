@@ -225,6 +225,19 @@ rather than accepting whatever they produce. The setup lives in [`.claude/`](.cl
   screenshot, not by trusting that they compile. Several real defects in this repo were found that
   way and only that way, including a chart that measured zero pixels tall.
 
+## Who built this
+
+**Agustin Madina**, Android and Kotlin Multiplatform engineer.
+
+I build production mobile apps and I wanted a piece that argues for KMP the way I would in a
+conversation: not with a shared networking layer and three sets of screens, but with one
+implementation of everything, running where you can click it. The decisions I would defend in a
+review are written down next to the code that makes them, including the ones where I chose the less
+impressive option on purpose.
+
+- [github.com/agustinmadina](https://github.com/agustinmadina)
+- The app itself has an **About** sheet with the same summary, reachable from the header
+
 ## Running it
 
 ```shell
