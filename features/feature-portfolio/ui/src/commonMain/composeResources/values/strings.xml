@@ -3,8 +3,14 @@
     <string name="portfolio_title">YOUR PORTFOLIO</string>
     <string name="portfolio_title_scrubbing">AT THIS POINT</string>
     <string name="portfolio_pricing_badge">PRICING</string>
-    <string name="portfolio_chart_window">past 24 hours</string>
-    <string name="portfolio_day_change_suffix">today</string>
+    <string name="range_day_short">24h</string>
+    <string name="range_week_short">1W</string>
+    <string name="range_month_short">1M</string>
+    <string name="range_year_short">1Y</string>
+    <string name="range_day_window">past 24 hours</string>
+    <string name="range_week_window">past week</string>
+    <string name="range_month_window">past month</string>
+    <string name="range_year_window">past year</string>
     <!-- %1$s is a signed amount, %2$s a percentage in parentheses or empty. -->
     <string name="portfolio_scrubbed_change">%1$s%2$s since this chart started</string>
     <string name="portfolio_return_vs_cost">%1$s (%2$s) vs what you paid</string>
@@ -24,7 +30,8 @@
     <string name="detail_back">Back</string>
     <string name="detail_removed">This asset is no longer in your portfolio.</string>
     <string name="detail_scrubbing_label">at this point</string>
-    <string name="detail_today_change">%1$s today</string>
+    <!-- %1$s is a percentage, %2$s the window it covers. -->
+    <string name="detail_range_change">%1$s %2$s</string>
     <string name="detail_row_holdings">Holdings</string>
     <string name="detail_row_market_value">Market value</string>
     <string name="detail_row_profit">Profit</string>
@@ -34,7 +41,6 @@
     <!-- Holding row -->
     <!-- %1$s is a quantity, %2$s the asset symbol. -->
     <string name="holding_quantity">%1$s %2$s</string>
-    <string name="holding_change_window">24h</string>
 
     <!-- Add an asset -->
     <string name="add_title">Add an asset</string>

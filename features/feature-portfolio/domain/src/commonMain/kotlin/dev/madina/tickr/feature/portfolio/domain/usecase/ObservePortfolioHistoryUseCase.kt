@@ -1,6 +1,7 @@
 package dev.madina.tickr.feature.portfolio.domain.usecase
 
 import dev.madina.tickr.core.domain.usecase.FlowUseCase
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
 import dev.madina.tickr.feature.portfolio.domain.model.Holding
 import dev.madina.tickr.feature.portfolio.domain.model.PortfolioHistory
 import dev.madina.tickr.feature.portfolio.domain.model.PricePoint
@@ -13,7 +14,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 /**
- * What the last day looked like, for every holding and for the portfolio as a whole.
+ * What the chosen window looked like, for every holding and for the portfolio as a whole.
  *
  * A separate stream from [ObservePortfolioUseCase] rather than a field on it: this is fetched once
  * per symbol over REST and changes only when the portfolio does, while prices arrive several times
@@ -28,21 +29,21 @@ class ObservePortfolioHistoryUseCase(
     private val holdingsRepository: HoldingsRepository,
     private val priceHistoryRepository: PriceHistoryRepository,
     coroutineDispatcher: CoroutineDispatcher,
-) : FlowUseCase<Unit, PortfolioHistory>(coroutineDispatcher) {
+) : FlowUseCase<HistoryRange, PortfolioHistory>(coroutineDispatcher) {
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun execute(parameters: Unit): Flow<PortfolioHistory> =
+    override fun execute(parameters: HistoryRange): Flow<PortfolioHistory> =
         holdingsRepository
             .observeHoldings()
             // Keyed on the holdings themselves, not just the symbols: a corrected quantity changes
             // what the total is worth at every point in the day, even though the symbol set did not
             // move. distinctUntilChanged still keeps a repeated emission from refetching.
             .distinctUntilChanged()
-            .map { holdings -> historyFor(holdings) }
+            .map { holdings -> historyFor(holdings, parameters) }
 
-    private suspend fun historyFor(holdings: List<Holding>): PortfolioHistory {
+    private suspend fun historyFor(holdings: List<Holding>, range: HistoryRange): PortfolioHistory {
         if (holdings.isEmpty()) return PortfolioHistory()
 
-        val bySymbol = holdings.associate { it.symbol to priceHistoryRepository.recentDay(it.symbol) }
+        val bySymbol = holdings.associate { it.symbol to priceHistoryRepository.history(it.symbol, range) }
 
         return PortfolioHistory(
             perSymbol = bySymbol.mapValues { (_, points) -> points.map { it.close } },

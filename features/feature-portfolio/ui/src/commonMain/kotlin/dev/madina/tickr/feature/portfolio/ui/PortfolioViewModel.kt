@@ -3,6 +3,7 @@ package dev.madina.tickr.feature.portfolio.ui
 import androidx.lifecycle.viewModelScope
 import dev.madina.tickr.core.domain.usecase.invoke
 import dev.madina.tickr.core.ui.mvi.BaseViewModel
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
 import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObserveFeedStatusUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioHistoryUseCase
@@ -32,6 +33,9 @@ internal class PortfolioViewModel(
 ) : BaseViewModel<PortfolioAction, PortfolioEffect, PortfolioUiState>(PortfolioUiState()) {
     /** Held so a new keystroke cancels the search in flight rather than racing it. */
     private var searchJob: Job? = null
+
+    /** Same reason: picking a range while the last one is still loading must not race it. */
+    private var historyJob: Job? = null
 
     init {
         observePortfolio()
@@ -74,39 +78,49 @@ internal class PortfolioViewModel(
             .catch { throwable -> log.e(throwable) { "The feed status stream failed" } }
             .launchIn(viewModelScope)
 
-        // The day is fetched over REST and only changes when the portfolio does, while prices
-        // arrive several times a second. Its own stream, so a tick does not refetch a day of
-        // candles.
-        observePortfolioHistory()
-            .onEach { day ->
-                updateState { previous ->
-                    val bySymbol = day.perSymbol.mapValues { (_, closes) -> closes.toFloats() }
-                    val total = day.total.toFloats()
-                    previous.copy(
-                        dayBySymbol = bySymbol,
-                        dayTotal = total,
-                        // The rows and the total already on screen carry live prices, so the
-                        // arriving day is re-applied to them here rather than waiting for the next
-                        // tick to redraw a chart the user is looking at.
-                        holdings =
-                            previous.holdings
-                                .map {
-                                    it.copy(
-                                        history = withLatest(bySymbol[it.symbol] ?: persistentListOf(), it.price),
-                                    )
-                                }.toImmutableList(),
-                        totalHistory =
-                            withLatest(
-                                day = total,
-                                live = previous.totalValue.takeIf { !previous.isPartiallyPriced && it > 0 },
-                            ),
-                        // A new day is a new series, so an index into the old one means nothing.
-                        overviewScrubIndex = null,
-                        detailScrubIndex = null,
-                    )
-                }
-            }.catch { throwable -> log.e(throwable) { "The price history stream failed" } }
-            .launchIn(viewModelScope)
+        observeHistory(HistoryRange.Day)
+    }
+
+    /**
+     * History is fetched over REST and changes only when the portfolio or the range does, while
+     * prices arrive several times a second. Its own stream, so a tick does not refetch candles,
+     * and restarted rather than combined so the ViewModel keeps one stream per concern.
+     */
+    private fun observeHistory(range: HistoryRange) {
+        historyJob?.cancel()
+        historyJob =
+            observePortfolioHistory(range)
+                .onEach { day ->
+                    updateState { previous ->
+                        val bySymbol = day.perSymbol.mapValues { (_, closes) -> closes.toFloats() }
+                        val total = day.total.toFloats()
+                        previous.copy(
+                            // Labels flip here, with the data, not when the range was tapped.
+                            displayedRange = range,
+                            dayBySymbol = bySymbol,
+                            dayTotal = total,
+                            // The rows and the total already on screen carry live prices, so the
+                            // arriving day is re-applied to them here rather than waiting for the next
+                            // tick to redraw a chart the user is looking at.
+                            holdings =
+                                previous.holdings
+                                    .map {
+                                        it.copy(
+                                            history = withLatest(bySymbol[it.symbol] ?: persistentListOf(), it.price),
+                                        )
+                                    }.toImmutableList(),
+                            totalHistory =
+                                withLatest(
+                                    day = total,
+                                    live = previous.totalValue.takeIf { !previous.isPartiallyPriced && it > 0 },
+                                ),
+                            // A new day is a new series, so an index into the old one means nothing.
+                            overviewScrubIndex = null,
+                            detailScrubIndex = null,
+                        )
+                    }
+                }.catch { throwable -> log.e(throwable) { "The price history stream failed" } }
+                .launchIn(viewModelScope)
     }
 
     override fun onAction(action: PortfolioAction) {
@@ -187,6 +201,14 @@ internal class PortfolioViewModel(
                         PortfolioAction.Chart.Detail -> state.copy(detailScrubIndex = index)
                     }
                 }
+
+            is PortfolioAction.RangeSelected -> {
+                // Nothing is cleared. The old series stays on screen, at the same size and under
+                // its own label, until the new one lands about a second later. Emptying it here
+                // took every chart out of composition, so all four rows collapsed and sprang back.
+                updateState { it.copy(range = action.range) }
+                observeHistory(action.range)
+            }
 
             PortfolioAction.ErrorDismissed ->
                 updateState { it.copy(errorMessage = null, catalogError = null) }

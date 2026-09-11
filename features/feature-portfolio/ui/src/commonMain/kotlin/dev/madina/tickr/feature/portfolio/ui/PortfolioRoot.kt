@@ -116,6 +116,8 @@ private fun SinglePaneLayout(
                 HoldingDetailScreen(
                     holding = state.selectedHolding,
                     scrubIndex = state.detailScrubIndex,
+                    range = state.displayedRange,
+                    selectedRange = state.range,
                     onAction = onAction,
                 )
         }
@@ -145,6 +147,8 @@ private fun TwoPaneLayout(
                 HoldingDetailScreen(
                     holding = state.selectedHolding,
                     scrubIndex = state.detailScrubIndex,
+                    range = state.displayedRange,
+                    selectedRange = state.range,
                     onAction = onAction,
                     // Nothing to go back to: the list is right there on the left.
                     showBack = false,

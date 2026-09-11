@@ -22,4 +22,19 @@ internal data class HoldingUi(
     val history: ImmutableList<Float>,
 ) {
     val isPriced: Boolean = price != null
+
+    /**
+     * How this asset moved across the window the chart draws, from its own endpoints.
+     *
+     * Not [changePercent24h], which the ticker reports against a rolling 24 hour open and is
+     * therefore only right for one of the ranges. Deriving it from the series is what keeps the
+     * number and the line describing the same stretch of time whichever range is selected.
+     */
+    val rangeChangePercent: Double? =
+        history
+            .firstOrNull()
+            ?.takeIf { it != 0f && history.size > 1 }
+            ?.let { first -> ((history.last() - first) / first * PercentScale).toDouble() }
 }
+
+private const val PercentScale = 100f

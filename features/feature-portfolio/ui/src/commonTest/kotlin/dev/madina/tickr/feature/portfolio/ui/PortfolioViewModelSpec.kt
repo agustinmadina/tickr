@@ -2,6 +2,7 @@ package dev.madina.tickr.feature.portfolio.ui
 
 import dev.madina.tickr.feature.portfolio.domain.model.Asset
 import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
 import dev.madina.tickr.feature.portfolio.domain.model.Holding
 import dev.madina.tickr.feature.portfolio.domain.model.PricePoint
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
@@ -340,7 +341,7 @@ private class FakePriceRepository : PriceRepository {
 /** A flat day, so a spec asserting on prices is not also asserting on a chart shape. */
 private val FakePriceHistoryRepository =
     object : PriceHistoryRepository {
-        override suspend fun recentDay(symbol: String): List<PricePoint> =
+        override suspend fun history(symbol: String, range: HistoryRange): List<PricePoint> =
             List(HistoryHours) { hour ->
                 PricePoint(epochSeconds = hour * SecondsPerHour, close = 150.0)
             }

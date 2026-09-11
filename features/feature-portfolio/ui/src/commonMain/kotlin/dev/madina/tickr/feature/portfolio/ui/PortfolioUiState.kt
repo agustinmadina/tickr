@@ -1,6 +1,7 @@
 package dev.madina.tickr.feature.portfolio.ui
 
 import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
 import dev.madina.tickr.feature.portfolio.ui.model.AssetUi
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
 import kotlinx.collections.immutable.ImmutableList
@@ -40,6 +41,16 @@ internal data class PortfolioUiState(
      */
     val dayBySymbol: Map<String, ImmutableList<Float>> = emptyMap(),
     val dayTotal: ImmutableList<Float> = persistentListOf(),
+    /** What the user last tapped. Drives the fetch and the selector's highlight, nothing else. */
+    val range: HistoryRange = HistoryRange.Day,
+    /**
+     * What the series currently on screen actually covers, which drives every label.
+     *
+     * Separate from [range] so picking a new window does not relabel a chart that is still showing
+     * the old one. They move together the moment the new series lands. Clearing the charts on the
+     * tap instead was worse: every row collapsed and sprang back a second later.
+     */
+    val displayedRange: HistoryRange = HistoryRange.Day,
     /**
      * Which sample the user is pointing at on each chart, or null when they are not.
      *
@@ -89,12 +100,18 @@ internal data class PortfolioUiState(
     val isUnpriced: Boolean = holdings.isNotEmpty() && holdings.none { it.isPriced }
 
     /**
-     * How the total moved across the window the chart draws, taken from the chart's own endpoints.
+     * The whole portfolio's move across the window the chart draws, from its own endpoints.
      *
-     * Close to [dayChange] but not the same arithmetic: that one comes from each asset's 24 hour
-     * percentage, this one from the first and last points on screen. While scrubbing, the number
-     * has to agree with the line under the finger rather than with a separate calculation.
+     * Not [dayChangePercent], which comes from each asset's rolling 24 hour open and is therefore
+     * only right for one of the ranges. Taking it from the series is what keeps the number and the
+     * line describing the same stretch of time whichever range is selected.
      */
+    val rangeChangePercent: Double? =
+        totalHistory
+            .firstOrNull()
+            ?.takeIf { it != 0f && totalHistory.size > 1 }
+            ?.let { first -> ((totalHistory.last() - first) / first * PERCENT).toDouble() }
+
     val chartChange: Double =
         if (totalHistory.size < 2) {
             0.0

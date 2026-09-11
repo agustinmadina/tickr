@@ -55,8 +55,6 @@ import tickr.features.feature_portfolio.ui.generated.resources.Res
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_add_asset
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_author
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_byline_prefix
-import tickr.features.feature_portfolio.ui.generated.resources.portfolio_chart_window
-import tickr.features.feature_portfolio.ui.generated.resources.portfolio_day_change_suffix
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_empty_body
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_empty_title
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_offline_banner
@@ -101,10 +99,9 @@ internal fun OverviewScreen(
                     Column {
                         InteractiveLineChart(
                             points = state.totalHistory,
-                            // Coloured by its own movement, not by the all time return. Painting a
-                            // falling session green because the position is up over its lifetime
-                            // makes the chart contradict the line it draws.
-                            color = if (state.dayChange >= 0) Positive else Negative,
+                            // Coloured by the move it actually draws, which is also what the
+                            // percentage beside every row reports for the same window.
+                            color = if ((state.rangeChangePercent ?: 0.0) >= 0) Positive else Negative,
                             scrubIndex = state.overviewScrubIndex,
                             onScrub = { index ->
                                 onAction(
@@ -117,13 +114,21 @@ internal fun OverviewScreen(
                                     .height(Sizing.HeaderChartHeight),
                         )
                         Spacer(Modifier.height(Spacing.ExtraSmall))
-                        // The third window on this screen, after all time above and 24h below.
-                        // Unlabelled, a rising chart over four falling rows reads as a bug.
-                        Text(
-                            text = stringResource(Res.string.portfolio_chart_window),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                        )
+                        // The caption sits beside the picker rather than under the chart alone:
+                        // the window is now a choice, so naming it next to the control that
+                        // changes it saves the reader working out which button did what.
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = state.displayedRange.windowLabel(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextSecondary,
+                                modifier = Modifier.weight(1f),
+                            )
+                            RangePicker(
+                                selected = state.range,
+                                onSelect = { onAction(PortfolioAction.RangeSelected(it)) },
+                            )
+                        }
                     }
                 }
             }
@@ -152,6 +157,7 @@ internal fun OverviewScreen(
             items(state.holdings, key = { it.symbol }) { holding ->
                 HoldingCard(
                     holding = holding,
+                    range = state.displayedRange,
                     onClick = { onAction(PortfolioAction.HoldingClicked(holding.symbol)) },
                     isSelected = holding.symbol == selectedSymbol,
                     modifier = Modifier.animateItem(),
@@ -197,13 +203,6 @@ private fun AddAssetRow(onClick: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * Signature and the way into [AboutSheet], in one line.
- *
- * A demo is read by someone deciding whose work it is, and a portfolio piece with no name on it
- * makes them go looking. Putting it in the layout rather than over the content keeps it out of the
- * way of the app itself, and tapping it explains the project rather than just crediting it.
- */
 @Composable
 private fun FeedDownBanner() {
     // Prices are not persisted, so offline every value on this screen is blank. Saying so turns a
@@ -223,6 +222,13 @@ private fun FeedDownBanner() {
     }
 }
 
+/**
+ * Signature and the way into [AboutSheet], in one line.
+ *
+ * A demo is read by someone deciding whose work it is, and a portfolio piece with no name on it
+ * makes them go looking. Putting it in the layout rather than over the content keeps it out of the
+ * way of the app itself, and tapping it explains the project rather than just crediting it.
+ */
 @Composable
 private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
@@ -356,18 +362,22 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 color = if (scrubbedChange >= 0) Positive else Negative,
             )
         } else {
-            // Today first. It is what a reader looks for, it is the same measure as the per-row
-            // percentages underneath, and unlike return against cost it depends on the market
-            // rather than on a number the user typed in.
+            // The market move first. It is what a reader looks for, it is the same measure as the
+            // per-row percentages underneath, and unlike return against cost it depends on the
+            // market rather than on a number the user typed in.
+            //
+            // It follows the selected window, like everything else on the screen. Left on "today"
+            // it read "+2.78% today" above a chart covering a year, which is the largest figure
+            // here disagreeing with the largest picture.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AnimatedAmount(
-                    value = state.dayChange,
+                    value = state.chartChange,
                     format = { it.formatSignedUsd() },
                     style = MaterialTheme.typography.titleMedium,
-                    baseColor = if (state.dayChange >= 0) Positive else Negative,
+                    baseColor = if (state.chartChange >= 0) Positive else Negative,
                     flashOnChange = false,
                 )
-                state.dayChangePercent?.let { percent ->
+                state.rangeChangePercent?.let { percent ->
                     Spacer(Modifier.width(Spacing.Small))
                     Text(
                         text = "(${percent.formatPercent()})",
@@ -377,7 +387,7 @@ private fun PortfolioHeader(state: PortfolioUiState) {
                 }
                 Spacer(Modifier.width(Spacing.Small))
                 Text(
-                    text = stringResource(Res.string.portfolio_day_change_suffix),
+                    text = state.displayedRange.windowLabel(),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                 )

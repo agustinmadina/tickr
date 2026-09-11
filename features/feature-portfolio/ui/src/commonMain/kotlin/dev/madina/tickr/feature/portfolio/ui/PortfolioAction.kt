@@ -1,5 +1,7 @@
 package dev.madina.tickr.feature.portfolio.ui
 
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
+
 internal sealed interface PortfolioAction {
     data class HoldingClicked(
         val symbol: String,
@@ -45,6 +47,10 @@ internal sealed interface PortfolioAction {
     enum class Chart { Overview, Detail }
 
     /** Index of the chart sample being pointed at, or null when the pointer leaves. */
+    data class RangeSelected(
+        val range: HistoryRange,
+    ) : PortfolioAction
+
     data class Scrubbed(
         val chart: Chart,
         val index: Int?,

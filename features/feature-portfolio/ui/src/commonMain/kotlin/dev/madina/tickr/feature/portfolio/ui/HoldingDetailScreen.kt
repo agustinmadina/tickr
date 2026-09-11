@@ -43,10 +43,12 @@ import dev.madina.tickr.core.ui.theme.Sizing
 import dev.madina.tickr.core.ui.theme.Spacing
 import dev.madina.tickr.core.ui.theme.SurfaceElevated
 import dev.madina.tickr.core.ui.theme.TextSecondary
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
 import org.jetbrains.compose.resources.stringResource
 import tickr.features.feature_portfolio.ui.generated.resources.Res
 import tickr.features.feature_portfolio.ui.generated.resources.detail_back
+import tickr.features.feature_portfolio.ui.generated.resources.detail_range_change
 import tickr.features.feature_portfolio.ui.generated.resources.detail_remove
 import tickr.features.feature_portfolio.ui.generated.resources.detail_removed
 import tickr.features.feature_portfolio.ui.generated.resources.detail_row_holdings
@@ -54,7 +56,6 @@ import tickr.features.feature_portfolio.ui.generated.resources.detail_row_market
 import tickr.features.feature_portfolio.ui.generated.resources.detail_row_profit
 import tickr.features.feature_portfolio.ui.generated.resources.detail_row_return
 import tickr.features.feature_portfolio.ui.generated.resources.detail_scrubbing_label
-import tickr.features.feature_portfolio.ui.generated.resources.detail_today_change
 import tickr.features.feature_portfolio.ui.generated.resources.holding_quantity
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_scrubbed_change
 
@@ -62,6 +63,8 @@ import tickr.features.feature_portfolio.ui.generated.resources.portfolio_scrubbe
 internal fun HoldingDetailScreen(
     holding: HoldingUi?,
     scrubIndex: Int?,
+    range: HistoryRange,
+    selectedRange: HistoryRange,
     onAction: (PortfolioAction) -> Unit,
     modifier: Modifier = Modifier,
     showBack: Boolean = true,
@@ -163,9 +166,14 @@ internal fun HoldingDetailScreen(
                         style = MaterialTheme.typography.displayMedium,
                     )
                 }
-                holding.changePercent24h?.let { change ->
+                holding.rangeChangePercent?.let { change ->
                     Text(
-                        text = stringResource(Res.string.detail_today_change, change.formatPercent()),
+                        text =
+                            stringResource(
+                                Res.string.detail_range_change,
+                                change.formatPercent(),
+                                range.windowLabel(),
+                            ),
                         style = MaterialTheme.typography.titleMedium,
                         color = if (change >= 0) Positive else Negative,
                     )
@@ -176,11 +184,22 @@ internal fun HoldingDetailScreen(
 
             InteractiveLineChart(
                 points = holding.history,
-                color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
+                color = if ((holding.rangeChangePercent ?: 0.0) >= 0) Positive else Negative,
                 scrubIndex = scrubIndex,
                 onScrub = { index -> onAction(PortfolioAction.Scrubbed(PortfolioAction.Chart.Detail, index)) },
                 modifier = Modifier.fillMaxWidth().height(Sizing.DetailChartHeight),
             )
+
+            Spacer(Modifier.height(Spacing.Small))
+
+            // The same control as the overview, and the same state behind it: changing the window
+            // here changes it there. Two pickers that disagreed would be worse than one.
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                RangePicker(
+                    selected = selectedRange,
+                    onSelect = { onAction(PortfolioAction.RangeSelected(it)) },
+                )
+            }
 
             Spacer(Modifier.height(Spacing.ExtraLarge))
 

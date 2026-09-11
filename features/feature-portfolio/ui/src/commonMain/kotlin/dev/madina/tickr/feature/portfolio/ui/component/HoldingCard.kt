@@ -35,16 +35,18 @@ import dev.madina.tickr.core.ui.theme.Sizing
 import dev.madina.tickr.core.ui.theme.Spacing
 import dev.madina.tickr.core.ui.theme.SurfaceElevated
 import dev.madina.tickr.core.ui.theme.TextSecondary
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
 import dev.madina.tickr.feature.portfolio.ui.Pending
 import dev.madina.tickr.feature.portfolio.ui.model.HoldingUi
+import dev.madina.tickr.feature.portfolio.ui.shortLabel
 import org.jetbrains.compose.resources.stringResource
 import tickr.features.feature_portfolio.ui.generated.resources.Res
-import tickr.features.feature_portfolio.ui.generated.resources.holding_change_window
 import tickr.features.feature_portfolio.ui.generated.resources.holding_quantity
 
 @Composable
 internal fun HoldingCard(
     holding: HoldingUi,
+    range: HistoryRange,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
@@ -99,7 +101,7 @@ internal fun HoldingCard(
             // contradicting itself, which is what it did while the line drew only the session.
             Sparkline(
                 points = holding.history,
-                color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
+                color = if ((holding.rangeChangePercent ?: 0.0) >= 0) Positive else Negative,
                 modifier =
                     Modifier
                         .weight(1f)
@@ -133,7 +135,7 @@ internal fun HoldingCard(
                         color = TextSecondary,
                     )
                 }
-                holding.changePercent24h?.let { change ->
+                holding.rangeChangePercent?.let { change ->
                     // Suffixed, because the headline above reports all time return and an
                     // unlabelled percentage here invites the reader to compare the two.
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -144,7 +146,7 @@ internal fun HoldingCard(
                         )
                         Spacer(Modifier.width(Spacing.ExtraSmall))
                         Text(
-                            text = stringResource(Res.string.holding_change_window),
+                            text = range.shortLabel(),
                             style = MaterialTheme.typography.labelSmall,
                             color = TextSecondary,
                         )

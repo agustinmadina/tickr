@@ -1,5 +1,6 @@
 package dev.madina.tickr.feature.portfolio.domain.usecase
 
+import dev.madina.tickr.feature.portfolio.domain.model.HistoryRange
 import dev.madina.tickr.feature.portfolio.domain.model.Holding
 import dev.madina.tickr.feature.portfolio.domain.model.PricePoint
 import dev.madina.tickr.feature.portfolio.domain.repository.HoldingsRepository
@@ -30,9 +31,9 @@ internal class ObservePortfolioHistoryUseCaseSpec :
                                 "BTC" to listOf(PricePoint(1, 100.0), PricePoint(2, 110.0)),
                                 "ETH" to listOf(PricePoint(1, 10.0), PricePoint(2, 20.0)),
                             )
-                        val useCase = useCase(listOf(twoBtc, threeEth), history, testScheduler)
+                        val useCase = buildUseCase(listOf(twoBtc, threeEth), history, testScheduler)
 
-                        val day = useCase(Unit).first()
+                        val day = useCase(HistoryRange.Day).first()
 
                         // 2 BTC + 3 ETH at each hour.
                         day.total shouldContainExactly listOf(230.0, 280.0)
@@ -54,9 +55,9 @@ internal class ObservePortfolioHistoryUseCaseSpec :
                                 "BTC" to listOf(PricePoint(1, 100.0), PricePoint(2, 100.0)),
                                 "ETH" to listOf(PricePoint(2, 10.0), PricePoint(3, 10.0)),
                             )
-                        val useCase = useCase(listOf(twoBtc, threeEth), history, testScheduler)
+                        val useCase = buildUseCase(listOf(twoBtc, threeEth), history, testScheduler)
 
-                        val day = useCase(Unit).first()
+                        val day = useCase(HistoryRange.Day).first()
 
                         day.total shouldContainExactly listOf(230.0)
                     }
@@ -72,9 +73,9 @@ internal class ObservePortfolioHistoryUseCaseSpec :
                         // A total that silently drops a holding is not a smaller total, it is a
                         // different portfolio, and nothing on screen would say which.
                         val history = FakeHistory("BTC" to listOf(PricePoint(1, 100.0)))
-                        val useCase = useCase(listOf(twoBtc, threeEth), history, testScheduler)
+                        val useCase = buildUseCase(listOf(twoBtc, threeEth), history, testScheduler)
 
-                        val day = useCase(Unit).first()
+                        val day = useCase(HistoryRange.Day).first()
 
                         day.total.shouldBeEmpty()
                         day.perSymbol.getValue("ETH").shouldBeEmpty()
@@ -89,9 +90,9 @@ internal class ObservePortfolioHistoryUseCaseSpec :
                 Then("nothing is fetched") {
                     runTest {
                         val history = FakeHistory()
-                        val useCase = useCase(emptyList(), history, testScheduler)
+                        val useCase = buildUseCase(emptyList(), history, testScheduler)
 
-                        val day = useCase(Unit).first()
+                        val day = useCase(HistoryRange.Day).first()
 
                         day.total.shouldBeEmpty()
                         history.requested.shouldBeEmpty()
@@ -114,11 +115,11 @@ internal class ObservePortfolioHistoryUseCaseSpec :
                                 UnconfinedTestDispatcher(testScheduler),
                             )
 
-                        useCase(Unit).first().total shouldContainExactly listOf(200.0)
+                        useCase(HistoryRange.Day).first().total shouldContainExactly listOf(200.0)
 
                         holdings.replace(listOf(twoBtc.copy(quantity = 5.0)))
 
-                        useCase(Unit).first().total shouldContainExactly listOf(500.0)
+                        useCase(HistoryRange.Day).first().total shouldContainExactly listOf(500.0)
                     }
                 }
             }
@@ -128,7 +129,7 @@ internal class ObservePortfolioHistoryUseCaseSpec :
 private val twoBtc = Holding(symbol = "BTC", name = "Bitcoin", quantity = 2.0, averageCost = 50.0)
 private val threeEth = Holding(symbol = "ETH", name = "Ethereum", quantity = 3.0, averageCost = 5.0)
 
-private fun useCase(
+private fun buildUseCase(
     holdings: List<Holding>,
     history: FakeHistory,
     scheduler: kotlinx.coroutines.test.TestCoroutineScheduler,
@@ -166,7 +167,7 @@ private class FakeHistory(
     /** Recorded so a spec can assert an empty portfolio asks the exchange for nothing. */
     val requested = mutableListOf<String>()
 
-    override suspend fun recentDay(symbol: String): List<PricePoint> {
+    override suspend fun history(symbol: String, range: HistoryRange): List<PricePoint> {
         requested += symbol
         return bySymbol[symbol].orEmpty()
     }
