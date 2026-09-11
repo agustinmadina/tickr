@@ -22,13 +22,4 @@ internal data class HoldingUi(
     val history: ImmutableList<Float>,
 ) {
     val isPriced: Boolean = price != null
-
-    /**
-     * The move across the samples the chart actually draws.
-     *
-     * A different span from [changePercent24h], which is the point: colouring the line by the daily
-     * change painted a session that had drifted down green whenever the day was up, so the chart
-     * contradicted its own shape. The overview chart already colours itself this way.
-     */
-    val sessionChange: Float = if (history.size < 2) 0f else history.last() - history.first()
 }

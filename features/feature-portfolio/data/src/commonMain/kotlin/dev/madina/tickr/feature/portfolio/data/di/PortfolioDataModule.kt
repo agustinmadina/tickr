@@ -4,10 +4,12 @@ import dev.madina.tickr.core.network.TickrJson
 import dev.madina.tickr.core.network.createHttpClient
 import dev.madina.tickr.core.storage.createSettings
 import dev.madina.tickr.feature.portfolio.data.repository.CoinbaseAssetCatalogRepository
+import dev.madina.tickr.feature.portfolio.data.repository.CoinbasePriceHistoryRepository
 import dev.madina.tickr.feature.portfolio.data.repository.CoinbasePriceRepository
 import dev.madina.tickr.feature.portfolio.data.repository.StoredHoldingsRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.AssetCatalogRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.HoldingsRepository
+import dev.madina.tickr.feature.portfolio.domain.repository.PriceHistoryRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
 import io.ktor.client.HttpClient
 import org.koin.core.module.Module
@@ -31,4 +33,5 @@ val portfolioDataModule: Module =
         }
         single<PriceRepository> { CoinbasePriceRepository(httpClient = get()) }
         single<AssetCatalogRepository> { CoinbaseAssetCatalogRepository(httpClient = get()) }
+        single<PriceHistoryRepository> { CoinbasePriceHistoryRepository(httpClient = get()) }
     }

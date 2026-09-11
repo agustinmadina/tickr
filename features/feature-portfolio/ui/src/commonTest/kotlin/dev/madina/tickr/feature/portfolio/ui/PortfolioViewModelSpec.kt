@@ -3,12 +3,15 @@ package dev.madina.tickr.feature.portfolio.ui
 import dev.madina.tickr.feature.portfolio.domain.model.Asset
 import dev.madina.tickr.feature.portfolio.domain.model.FeedStatus
 import dev.madina.tickr.feature.portfolio.domain.model.Holding
+import dev.madina.tickr.feature.portfolio.domain.model.PricePoint
 import dev.madina.tickr.feature.portfolio.domain.model.PriceTick
 import dev.madina.tickr.feature.portfolio.domain.repository.AssetCatalogRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.HoldingsRepository
+import dev.madina.tickr.feature.portfolio.domain.repository.PriceHistoryRepository
 import dev.madina.tickr.feature.portfolio.domain.repository.PriceRepository
 import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObserveFeedStatusUseCase
+import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioHistoryUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.SearchAssetsUseCase
@@ -281,6 +284,7 @@ private fun viewModel(
     return PortfolioViewModel(
         observePortfolio = ObservePortfolioUseCase(holdings, prices, dispatcher),
         observeFeedStatus = ObserveFeedStatusUseCase(prices, dispatcher),
+        observePortfolioHistory = ObservePortfolioHistoryUseCase(holdings, FakePriceHistoryRepository, dispatcher),
         addHolding = AddHoldingUseCase(holdings, dispatcher),
         removeHolding = RemoveHoldingUseCase(holdings, dispatcher),
         searchAssets = SearchAssetsUseCase(catalog, dispatcher),
@@ -332,6 +336,18 @@ private class FakePriceRepository : PriceRepository {
 
     override fun observeStatus(): Flow<FeedStatus> = status
 }
+
+/** A flat day, so a spec asserting on prices is not also asserting on a chart shape. */
+private val FakePriceHistoryRepository =
+    object : PriceHistoryRepository {
+        override suspend fun recentDay(symbol: String): List<PricePoint> =
+            List(HistoryHours) { hour ->
+                PricePoint(epochSeconds = hour * SecondsPerHour, close = 150.0)
+            }
+    }
+
+private const val HistoryHours = 24
+private const val SecondsPerHour = 3600L
 
 private class FakeAssetCatalogRepository : AssetCatalogRepository {
     override suspend fun tradableAssets(): List<Asset> =

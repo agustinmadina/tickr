@@ -5,10 +5,12 @@ import dev.madina.tickr.core.domain.usecase.invoke
 import dev.madina.tickr.core.ui.mvi.BaseViewModel
 import dev.madina.tickr.feature.portfolio.domain.usecase.AddHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObserveFeedStatusUseCase
+import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioHistoryUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.ObservePortfolioUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.RemoveHoldingUseCase
 import dev.madina.tickr.feature.portfolio.domain.usecase.SearchAssetsUseCase
 import dev.madina.tickr.feature.portfolio.ui.mapper.toUi
+import dev.madina.tickr.feature.portfolio.ui.mapper.withLatest
 import dev.madina.tickr.feature.portfolio.ui.model.AssetUi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -23,6 +25,7 @@ import kotlinx.coroutines.launch
 internal class PortfolioViewModel(
     private val observePortfolio: ObservePortfolioUseCase,
     private val observeFeedStatus: ObserveFeedStatusUseCase,
+    private val observePortfolioHistory: ObservePortfolioHistoryUseCase,
     private val addHolding: AddHoldingUseCase,
     private val removeHolding: RemoveHoldingUseCase,
     private val searchAssets: SearchAssetsUseCase,
@@ -34,42 +37,24 @@ internal class PortfolioViewModel(
         observePortfolio()
             .onEach { portfolio ->
                 updateState { previous ->
-                    // Adding or removing an asset also breaks comparability: the total jumps by the
-                    // size of the position, and the chart drew that as a cliff, as though the market
-                    // had moved. A different set of holdings is a different series, so it starts
-                    // again.
-                    val holdingsChanged =
-                        previous.holdings.isNotEmpty() &&
-                            portfolio.holdings.map { it.holding.symbol }.toSet() !=
-                            previous.holdings.map { it.symbol }.toSet()
-
                     previous.copy(
-                        // The previous holdings carry the price history, so the reducer derives the
-                        // new samples from the old state rather than from a field, keeping it pure.
-                        holdings = portfolio.toUi(previous.holdings.associate { it.symbol to it.history }),
+                        // The day is fetched by its own stream and kept in state, so this reducer
+                        // reads it rather than a field and stays pure. Each series is that day with
+                        // its final, still-forming hour replaced by the live price.
+                        holdings = portfolio.toUi(previous.dayBySymbol),
                         totalValue = portfolio.totalValue,
                         totalProfit = portfolio.totalProfit,
                         totalReturnPercent = portfolio.totalReturnPercent,
                         dayChange = portfolio.dayChange,
                         dayChangePercent = portfolio.dayChangePercent,
-                        // Only once every holding has a price. Quotes arrive one asset at a time,
-                        // so the first few totals are partial sums, and charting them drew a
-                        // vertical climb out of nothing while the feed filled in. A point on this
-                        // series has to be comparable with the ones beside it, which means it must
-                        // cover the whole portfolio.
+                        // The live total only belongs on the chart once every holding has a price.
+                        // Quotes arrive one asset at a time, so a partial sum would drop the last
+                        // point off a cliff and back again.
                         totalHistory =
-                            when {
-                                holdingsChanged -> persistentListOf()
-
-                                !portfolio.isPartiallyPriced && portfolio.totalValue > 0 ->
-                                    previous.totalHistory.append(portfolio.totalValue)
-
-                                else -> previous.totalHistory
-                            },
-                        // Emptying the series takes the chart out of composition, so it never gets
-                        // to report the pointer leaving. A stale index left the header stuck on
-                        // "at this point" with no marker under it to explain why.
-                        overviewScrubIndex = if (holdingsChanged) null else previous.overviewScrubIndex,
+                            withLatest(
+                                day = previous.dayTotal,
+                                live = portfolio.totalValue.takeIf { !portfolio.isPartiallyPriced && it > 0 },
+                            ),
                         isPartiallyPriced = portfolio.isPartiallyPriced,
                         isLoading = false,
                     )
@@ -87,6 +72,40 @@ internal class PortfolioViewModel(
         observeFeedStatus()
             .onEach { status -> updateState { it.copy(feedStatus = status) } }
             .catch { throwable -> log.e(throwable) { "The feed status stream failed" } }
+            .launchIn(viewModelScope)
+
+        // The day is fetched over REST and only changes when the portfolio does, while prices
+        // arrive several times a second. Its own stream, so a tick does not refetch a day of
+        // candles.
+        observePortfolioHistory()
+            .onEach { day ->
+                updateState { previous ->
+                    val bySymbol = day.perSymbol.mapValues { (_, closes) -> closes.toFloats() }
+                    val total = day.total.toFloats()
+                    previous.copy(
+                        dayBySymbol = bySymbol,
+                        dayTotal = total,
+                        // The rows and the total already on screen carry live prices, so the
+                        // arriving day is re-applied to them here rather than waiting for the next
+                        // tick to redraw a chart the user is looking at.
+                        holdings =
+                            previous.holdings
+                                .map {
+                                    it.copy(
+                                        history = withLatest(bySymbol[it.symbol] ?: persistentListOf(), it.price),
+                                    )
+                                }.toImmutableList(),
+                        totalHistory =
+                            withLatest(
+                                day = total,
+                                live = previous.totalValue.takeIf { !previous.isPartiallyPriced && it > 0 },
+                            ),
+                        // A new day is a new series, so an index into the old one means nothing.
+                        overviewScrubIndex = null,
+                        detailScrubIndex = null,
+                    )
+                }
+            }.catch { throwable -> log.e(throwable) { "The price history stream failed" } }
             .launchIn(viewModelScope)
     }
 
@@ -273,19 +292,6 @@ internal class PortfolioViewModel(
     }
 }
 
-/**
- * Appends a sample to the total's history, dropping a repeat of the last value.
- *
- * Skipping the repeat is what makes this safe inside the reducer, which `MutableStateFlow.update`
- * may re-run under contention, and it also keeps a still market from filling the chart with a
- * straight line of identical points.
- */
-private fun ImmutableList<Float>.append(value: Double): ImmutableList<Float> {
-    val sample = value.toFloat()
-    if (lastOrNull() == sample) return this
-    return (this + sample).takeLast(MaxTotalSamples).toImmutableList()
-}
+private fun List<Double>.toFloats(): ImmutableList<Float> = map { it.toFloat() }.toImmutableList()
 
-/** Roughly a few minutes of feed at the current tick rate, which is all the chart can resolve. */
-private const val MaxTotalSamples = 120
 private const val SearchDebounceMillis = 220L

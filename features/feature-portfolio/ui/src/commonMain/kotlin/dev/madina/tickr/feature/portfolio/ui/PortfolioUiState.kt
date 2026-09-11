@@ -26,8 +26,20 @@ internal data class PortfolioUiState(
     /** Today's move across the whole portfolio, the headline figure. */
     val dayChange: Double = 0.0,
     val dayChangePercent: Double? = null,
-    /** Value of the whole portfolio over time, one sample per update, for the header chart. */
+    /**
+     * The last 24 hourly closes for the whole portfolio, with its final hour replaced by the live
+     * total. The window is the same one the headline percentage covers, which is the point: the
+     * chart used to draw the minutes since launch beside a number covering a day.
+     */
     val totalHistory: ImmutableList<Float> = persistentListOf(),
+    /**
+     * The day as fetched, before the live price is laid over it.
+     *
+     * Kept so both reducers can derive a series without either holding a field: prices and the day
+     * arrive on separate streams, and whichever lands second has to rebuild from the same base.
+     */
+    val dayBySymbol: Map<String, ImmutableList<Float>> = emptyMap(),
+    val dayTotal: ImmutableList<Float> = persistentListOf(),
     /**
      * Which sample the user is pointing at on each chart, or null when they are not.
      *
@@ -77,12 +89,13 @@ internal data class PortfolioUiState(
     val isUnpriced: Boolean = holdings.isNotEmpty() && holdings.none { it.isPriced }
 
     /**
-     * How the total has moved since the app opened, which is the window the header chart covers.
+     * How the total moved across the window the chart draws, taken from the chart's own endpoints.
      *
-     * It is a third measure alongside all time return and the rows' 24 hour change, and the only
-     * one bounded by the session, since the app keeps no history between launches.
+     * Close to [dayChange] but not the same arithmetic: that one comes from each asset's 24 hour
+     * percentage, this one from the first and last points on screen. While scrubbing, the number
+     * has to agree with the line under the finger rather than with a separate calculation.
      */
-    val sessionChange: Double =
+    val chartChange: Double =
         if (totalHistory.size < 2) {
             0.0
         } else {

@@ -18,7 +18,7 @@ Coinbase over a WebSocket.
 </p>
 
 <p align="center">
-  <em>Prices ticking in, dragging along the chart to read any moment in the session, opening a
+  <em>Prices ticking in, dragging along the chart to read any hour of the day, opening a
   position, and searching the live Coinbase catalogue. Nothing here is a mockup: every number
   arrives over a WebSocket while the recording runs.</em>
 </p>
@@ -215,7 +215,7 @@ Every push runs formatting, tests and the three builds:
 ./gradlew testAndroidHostTest # Kotest specs
 ```
 
-**75 specs**, covering the parts where being wrong is expensive and invisible: money arithmetic
+**80 specs**, covering the parts where being wrong is expensive and invisible: money arithmetic
 with an unpriced holding, a zero cost basis, recovering yesterday's price from a percentage,
 resubscribing the feed when holdings change, persistence surviving a restart, and search ranking.
 

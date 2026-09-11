@@ -12,5 +12,5 @@ import org.koin.dsl.module
  */
 val portfolioUiModule: Module =
     module {
-        viewModel { PortfolioViewModel(get(), get(), get(), get(), get()) }
+        viewModel { PortfolioViewModel(get(), get(), get(), get(), get(), get()) }
     }

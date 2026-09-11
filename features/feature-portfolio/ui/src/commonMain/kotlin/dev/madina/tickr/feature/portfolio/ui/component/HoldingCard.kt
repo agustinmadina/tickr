@@ -94,13 +94,12 @@ internal fun HoldingCard(
                 )
             }
 
-            // The asset's own colour, not green or red. The line covers the minutes since launch
-            // while the percentage beside it covers 24h, so tinting both by direction put two
-            // contradictory signals in one row: a green line next to a red number. Direction is
-            // the percentage's job, and it is the one with its window written next to it.
+            // Direction, not the asset's colour. The line and the percentage beside it both cover
+            // the last 24 hours now, so tinting both says the same thing twice rather than
+            // contradicting itself, which is what it did while the line drew only the session.
             Sparkline(
                 points = holding.history,
-                color = holding.accent,
+                color = if ((holding.changePercent24h ?: 0.0) >= 0) Positive else Negative,
                 modifier =
                     Modifier
                         .weight(1f)

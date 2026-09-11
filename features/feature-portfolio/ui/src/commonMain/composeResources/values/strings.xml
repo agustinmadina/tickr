@@ -3,7 +3,7 @@
     <string name="portfolio_title">YOUR PORTFOLIO</string>
     <string name="portfolio_title_scrubbing">AT THIS POINT</string>
     <string name="portfolio_pricing_badge">PRICING</string>
-    <string name="portfolio_chart_window">since you opened the app</string>
+    <string name="portfolio_chart_window">past 24 hours</string>
     <string name="portfolio_day_change_suffix">today</string>
     <!-- %1$s is a signed amount, %2$s a percentage in parentheses or empty. -->
     <string name="portfolio_scrubbed_change">%1$s%2$s since this chart started</string>
