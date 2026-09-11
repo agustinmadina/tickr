@@ -65,9 +65,7 @@ fun InteractiveLineChart(
     // sends again.
     val currentPoints by rememberUpdatedState(points)
 
-    val minimum = points.min()
-    val maximum = points.max()
-    val range = (maximum - minimum).takeIf { it > 0f }
+    val scale = ChartRange(points)
 
     Canvas(
         modifier =
@@ -124,10 +122,10 @@ fun InteractiveLineChart(
         val stepX = size.width / (points.size - 1)
 
         fun yOf(value: Float): Float {
-            val normalised = range?.let { (value - minimum) / it } ?: MidPoint
             // Inset from both edges so the highest and lowest points are not clipped by the bounds.
             val usable = size.height * (1f - VerticalInset * 2)
-            return size.height - (size.height * VerticalInset) - (normalised * usable * appear.value)
+            return size.height - (size.height * VerticalInset) -
+                (scale.fractionOf(value) * usable * appear.value)
         }
 
         val line =
@@ -194,7 +192,6 @@ private fun indexAt(x: Float, width: Int, count: Int): Int {
 
 private const val MinimumPoints = 2
 private const val AppearDurationMillis = 700
-private const val MidPoint = 0.5f
 private const val FillAlpha = 0.22f
 private const val GuideAlpha = 0.35f
 private const val HaloAlpha = 0.3f

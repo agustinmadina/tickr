@@ -215,7 +215,7 @@ Every push runs formatting, tests and the three builds:
 ./gradlew testAndroidHostTest # Kotest specs
 ```
 
-**67 specs**, covering the parts where being wrong is expensive and invisible: money arithmetic
+**75 specs**, covering the parts where being wrong is expensive and invisible: money arithmetic
 with an unpriced holding, a zero cost basis, recovering yesterday's price from a percentage,
 resubscribing the feed when holdings change, persistence surviving a restart, and search ranking.
 

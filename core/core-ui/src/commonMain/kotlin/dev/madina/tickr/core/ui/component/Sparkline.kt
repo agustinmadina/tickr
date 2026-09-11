@@ -44,18 +44,14 @@ fun Sparkline(
         appear.animateTo(1f, tween(durationMillis = AppearDurationMillis))
     }
 
-    val minimum = points.min()
-    val maximum = points.max()
-    val range = (maximum - minimum).takeIf { it > 0f }
+    val scale = ChartRange(points)
 
     Canvas(modifier = modifier) {
         val stepX = size.width / (points.size - 1)
 
         fun yOf(value: Float): Float {
-            // A flat series has no range to normalise against, so it is pinned to the middle.
-            val normalised = range?.let { (value - minimum) / it } ?: MidPoint
             val usableHeight = size.height * appear.value
-            return size.height - (normalised * usableHeight)
+            return size.height - (scale.fractionOf(value) * usableHeight)
         }
 
         val line =
@@ -96,7 +92,6 @@ fun Sparkline(
 
 private const val MinimumPoints = 2
 private const val AppearDurationMillis = 700
-private const val MidPoint = 0.5f
 private const val FillAlpha = 0.22f
 private val StrokeWidth = 2.dp
 private val EndDotRadius = 3.dp
