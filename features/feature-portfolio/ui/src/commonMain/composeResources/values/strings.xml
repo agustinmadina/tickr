@@ -14,6 +14,7 @@
     <string name="portfolio_empty_body">Add an asset to start tracking what it is worth.</string>
     <string name="portfolio_byline_prefix">by </string>
     <string name="portfolio_author">Agustin Madina</string>
+    <string name="portfolio_platforms">Kotlin and Compose Multiplatform: Android, iOS, Web</string>
 
     <!-- Two pane placeholder -->
     <string name="detail_placeholder_title">Pick an asset</string>

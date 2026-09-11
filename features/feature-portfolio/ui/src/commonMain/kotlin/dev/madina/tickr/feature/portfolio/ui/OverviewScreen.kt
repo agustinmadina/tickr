@@ -60,6 +60,7 @@ import tickr.features.feature_portfolio.ui.generated.resources.portfolio_day_cha
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_empty_body
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_empty_title
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_offline_banner
+import tickr.features.feature_portfolio.ui.generated.resources.portfolio_platforms
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_pricing_badge
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_return_vs_cost
 import tickr.features.feature_portfolio.ui.generated.resources.portfolio_scrubbed_change
@@ -90,7 +91,10 @@ internal fun OverviewScreen(
         ) {
             item { Byline(onClick = { onAction(PortfolioAction.AboutClicked) }) }
 
-            item { PortfolioHeader(state) }
+            item {
+                Spacer(Modifier.height(Spacing.Small))
+                PortfolioHeader(state)
+            }
 
             if (state.totalHistory.size >= MinimumChartPoints) {
                 item {
@@ -221,9 +225,9 @@ private fun FeedDownBanner() {
 
 @Composable
 private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+        horizontalAlignment = Alignment.End,
     ) {
         Row(
             modifier =
@@ -248,6 +252,20 @@ private fun Byline(onClick: () -> Unit, modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.primary,
             )
         }
+
+        // Grey and outside the clickable area. Blue means tappable here, and the name above it
+        // already is; two tappable things this close would fight. This one is only a fact, and it
+        // is the fact somebody opening the web build has no other way to learn without reading the
+        // repository: that the page they are on is the phone app, compiled.
+        Text(
+            text = stringResource(Res.string.portfolio_platforms),
+            style = MaterialTheme.typography.labelSmall,
+            color = TextSecondary,
+            // End, not the default start: a longer translation, or a narrower phone, wraps this
+            // and the overflow used to land hard left under a right-aligned first line.
+            textAlign = TextAlign.End,
+            modifier = Modifier.padding(horizontal = Spacing.Small),
+        )
     }
 }
 
